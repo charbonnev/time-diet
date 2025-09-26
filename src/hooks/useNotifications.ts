@@ -19,7 +19,7 @@ export function useNotifications() {
   const { 
     currentSchedule, 
     settings, 
-    notificationQueue,
+    saveNotification,
     scheduleNotifications,
     clearNotifications
   } = useAppStore();
@@ -37,34 +37,43 @@ export function useNotifications() {
       return;
     }
 
-    // Clear existing notifications
-    clearScheduledNotifications(timeoutIds.current);
-    timeoutIds.current = [];
-    clearNotifications();
+    const scheduleNotificationsAsync = async () => {
+      // Clear existing notifications
+      clearScheduledNotifications(timeoutIds.current);
+      timeoutIds.current = [];
+      await clearNotifications();
 
-    // Schedule new notifications
-    const notifications = scheduleBlockNotifications(
-      currentSchedule.blocks,
-      settings.earlyWarningMinutes
-    );
+      // Schedule new notifications
+      const notifications = scheduleBlockNotifications(
+        currentSchedule.blocks,
+        settings.earlyWarningMinutes
+      );
 
-    // Use the store's scheduleNotifications function if it exists
-    if (scheduleNotifications) {
-      scheduleNotifications();
-    }
+      // Save notifications to store
+      for (const notification of notifications) {
+        await saveNotification(notification);
+      }
 
-    // Schedule with setTimeout
-    const ids = notifications.map(notification => 
-      scheduleNotification(notification)
-    ).filter(id => id !== -1);
+      // Use the store's scheduleNotifications function if it exists
+      if (scheduleNotifications) {
+        await scheduleNotifications();
+      }
 
-    timeoutIds.current = ids;
+      // Schedule with setTimeout
+      const ids = notifications.map(notification => 
+        scheduleNotification(notification)
+      ).filter(id => id !== -1);
+
+      timeoutIds.current = ids;
+    };
+
+    scheduleNotificationsAsync();
 
     return () => {
       clearScheduledNotifications(timeoutIds.current);
       clearNotifications();
     };
-  }, [currentSchedule, settings.notificationsEnabled, settings.earlyWarningMinutes, scheduleNotifications, clearNotifications]);
+  }, [currentSchedule, settings.notificationsEnabled, settings.earlyWarningMinutes, saveNotification, scheduleNotifications, clearNotifications]);
 
   // Check for daily reminders
   useEffect(() => {

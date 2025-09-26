@@ -91,6 +91,7 @@ interface AppState {
   startChallenge: () => Promise<void>;
   
   // Notifications
+  saveNotification: (notification: NotificationQueue) => Promise<void>;
   scheduleNotifications: () => Promise<void>;
   clearNotifications: () => Promise<void>;
   
@@ -434,9 +435,33 @@ export const useAppStore = create<AppState>()(
           }
         },
 
-        // Notifications (placeholder - will be implemented in Phase 4)
+        // Notifications
+        saveNotification: async (notification: NotificationQueue) => {
+          try {
+            await saveNotification(notification);
+            const currentQueue = get().notificationQueue;
+            set({ notificationQueue: [...currentQueue, notification] });
+          } catch (error) {
+            set({ error: error instanceof Error ? error.message : 'Failed to save notification' });
+          }
+        },
+
         scheduleNotifications: async () => {
-          // TODO: Implement notification scheduling
+          try {
+            const { currentSchedule, settings } = get();
+            if (!settings.notificationsEnabled || !currentSchedule) {
+              return;
+            }
+
+            // Clear existing notifications first
+            await get().clearNotifications();
+
+            // This function is called by the useNotifications hook
+            // The actual scheduling is handled there with setTimeout
+            // This is just a placeholder for any additional scheduling logic
+          } catch (error) {
+            set({ error: error instanceof Error ? error.message : 'Failed to schedule notifications' });
+          }
         },
 
         clearNotifications: async () => {

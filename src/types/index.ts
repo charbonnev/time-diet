@@ -48,12 +48,14 @@ export interface Template {
 }
 
 export interface Checklist {
+  id: string;
   date: string; // YYYY-MM-DD format
   wake0730: boolean;
   focusBlocksCompleted: number; // 0-4
   noWeekdayYTGames: boolean;
   lightsOut2330: boolean;
   success: boolean;
+  successRate: number; // Calculated percentage
 }
 
 export interface Settings {
