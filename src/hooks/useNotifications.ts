@@ -20,7 +20,7 @@ export function useNotifications() {
     currentSchedule, 
     settings, 
     notificationQueue,
-    saveNotification,
+    scheduleNotifications,
     clearNotifications
   } = useAppStore();
 
@@ -40,6 +40,7 @@ export function useNotifications() {
     // Clear existing notifications
     clearScheduledNotifications(timeoutIds.current);
     timeoutIds.current = [];
+    clearNotifications();
 
     // Schedule new notifications
     const notifications = scheduleBlockNotifications(
@@ -47,10 +48,10 @@ export function useNotifications() {
       settings.earlyWarningMinutes
     );
 
-    // Save to store
-    notifications.forEach(notification => {
-      saveNotification(notification);
-    });
+    // Use the store's scheduleNotifications function if it exists
+    if (scheduleNotifications) {
+      scheduleNotifications();
+    }
 
     // Schedule with setTimeout
     const ids = notifications.map(notification => 
@@ -61,8 +62,9 @@ export function useNotifications() {
 
     return () => {
       clearScheduledNotifications(timeoutIds.current);
+      clearNotifications();
     };
-  }, [currentSchedule, settings.notificationsEnabled, settings.earlyWarningMinutes, saveNotification]);
+  }, [currentSchedule, settings.notificationsEnabled, settings.earlyWarningMinutes, scheduleNotifications, clearNotifications]);
 
   // Check for daily reminders
   useEffect(() => {

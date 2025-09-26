@@ -6,7 +6,15 @@ import { cn } from '@/lib/utils';
 
 const CalendarView: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const { getScheduleForDate, getChecklistForDate, currentDate, setCurrentDate } = useAppStore();
+  const [dayStatuses, setDayStatuses] = useState<Record<string, string>>({});
+  const { 
+    currentSchedule, 
+    currentChecklist, 
+    loadScheduleForDate, 
+    loadChecklistForDate, 
+    currentDate, 
+    setCurrentDate 
+  } = useAppStore();
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -20,23 +28,49 @@ const CalendarView: React.FC = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
   };
 
-  const getDayStatus = (date: Date) => {
-    const schedule = getScheduleForDate(format(date, 'yyyy-MM-dd'));
-    const checklist = getChecklistForDate(format(date, 'yyyy-MM-dd'));
+  // Update day statuses when month changes
+  useEffect(() => {
+    const updateDayStatuses = async () => {
+      const statuses: Record<string, string> = {};
+      
+      for (const day of daysInMonth) {
+        const dateStr = format(day, 'yyyy-MM-dd');
+        
+        try {
+          // Load schedule for the day
+          await loadScheduleForDate(dateStr);
+          
+          // If we have a schedule, load the checklist
+          if (currentSchedule && currentSchedule.blocks.length > 0) {
+            await loadChecklistForDate(dateStr);
+            
+            if (currentChecklist) {
+              const successRate = currentChecklist.successRate || 0;
+              if (successRate >= 80) statuses[dateStr] = 'excellent';
+              else if (successRate >= 60) statuses[dateStr] = 'good';
+              else if (successRate >= 40) statuses[dateStr] = 'fair';
+              else statuses[dateStr] = 'poor';
+            } else {
+              statuses[dateStr] = 'scheduled';
+            }
+          } else {
+            statuses[dateStr] = 'empty';
+          }
+        } catch (error) {
+          console.error(`Error loading data for ${dateStr}:`, error);
+          statuses[dateStr] = 'error';
+        }
+      }
+      
+      setDayStatuses(statuses);
+    };
     
-    if (!schedule || schedule.blocks.length === 0) {
-      return 'empty'; // No schedule
-    }
+    updateDayStatuses();
+  }, [currentMonth, daysInMonth, loadScheduleForDate, loadChecklistForDate]);
 
-    if (!checklist) {
-      return 'scheduled'; // Has schedule but no checklist data
-    }
-
-    const successRate = checklist.successRate;
-    if (successRate >= 80) return 'excellent';
-    if (successRate >= 60) return 'good';
-    if (successRate >= 40) return 'fair';
-    return 'poor';
+  const getDayStatus = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return dayStatuses[dateStr] || 'empty';
   };
 
   const getStatusColor = (status: string) => {
