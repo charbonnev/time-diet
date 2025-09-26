@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { CheckCircle, Circle, Target, TrendingUp, Calendar } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { cn } from '@/lib/utils';
+import { Checklist } from '@/types';
 
 const ChecklistView: React.FC = () => {
   const { 
@@ -43,27 +44,49 @@ const ChecklistView: React.FC = () => {
     setStreakData(data);
   }, []);
 
-  const handleChecklistToggle = async (itemId: string, completed: boolean) => {
-    if (currentChecklist) {
-      await updateChecklistItem(currentChecklist.id, itemId, completed);
-    }
+  const handleChecklistToggle = async (itemKey: keyof Checklist, newValue: boolean) => {
+    await updateChecklistItem(currentDate, { [itemKey]: newValue });
   };
 
-  const getCategoryColor = (categoryId: string) => {
-    return categories.find(cat => cat.id === categoryId)?.color || '#cccccc';
-  };
-
-  if (!currentSchedule || !currentChecklist) {
+  if (!currentSchedule) {
     return (
       <div className="p-4 text-center text-gray-500">
-        <p>No checklist available for today. Complete some time blocks first!</p>
+        <p>No schedule available for today. Apply the default template first!</p>
       </div>
     );
   }
 
-  const completedItems = currentChecklist.items.filter(item => item.completed).length;
-  const totalItems = currentChecklist.items.length;
-  const successRate = Math.round((completedItems / totalItems) * 100);
+  // Calculate checklist items from the actual Checklist interface
+  const checklistItems = [
+    { 
+      name: 'Wake up at 7:30', 
+      completed: currentChecklist?.wake0730 || false,
+      key: 'wake0730' as keyof Checklist,
+      clickable: true
+    },
+    { 
+      name: 'Focus Blocks Completed', 
+      completed: (currentChecklist?.focusBlocksCompleted || 0) >= 4,
+      key: 'focusBlocksCompleted' as keyof Checklist,
+      clickable: false // This is auto-updated from time blocks
+    },
+    { 
+      name: 'No Weekday YT/Games', 
+      completed: currentChecklist?.noWeekdayYTGames || false,
+      key: 'noWeekdayYTGames' as keyof Checklist,
+      clickable: true
+    },
+    { 
+      name: 'Lights Out at 23:30', 
+      completed: currentChecklist?.lightsOut2330 || false,
+      key: 'lightsOut2330' as keyof Checklist,
+      clickable: true
+    }
+  ];
+
+  const completedItems = checklistItems.filter(item => item.completed).length;
+  const totalItems = checklistItems.length;
+  const successRate = currentChecklist?.successRate || Math.round((completedItems / totalItems) * 100);
 
   // Prepare pie chart data
   const pieData = [
@@ -71,19 +94,17 @@ const ChecklistView: React.FC = () => {
     { name: 'Remaining', value: totalItems - completedItems, color: '#e5e7eb' }
   ];
 
-  // Category breakdown
+  // Category breakdown from schedule blocks
   const categoryBreakdown = categories.map(category => {
-    const categoryItems = currentChecklist.items.filter(item => 
-      currentSchedule.blocks.find(block => block.id === item.blockId)?.categoryId === category.id
-    );
-    const completedCategoryItems = categoryItems.filter(item => item.completed);
+    const categoryBlocks = currentSchedule.blocks.filter(block => block.categoryId === category.id);
+    const completedCategoryBlocks = categoryBlocks.filter(block => block.status === 'completed');
     
     return {
       name: category.name,
-      completed: completedCategoryItems.length,
-      total: categoryItems.length,
+      completed: completedCategoryBlocks.length,
+      total: categoryBlocks.length,
       color: category.color,
-      percentage: categoryItems.length > 0 ? Math.round((completedCategoryItems.length / categoryItems.length) * 100) : 0
+      percentage: categoryBlocks.length > 0 ? Math.round((completedCategoryBlocks.length / categoryBlocks.length) * 100) : 0
     };
   }).filter(cat => cat.total > 0);
 
@@ -200,21 +221,21 @@ const ChecklistView: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm p-4">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Today's Tasks</h3>
         <div className="space-y-3">
-          {currentChecklist.items.map(item => {
-            const block = currentSchedule.blocks.find(b => b.id === item.blockId);
-            if (!block) return null;
-
-            return (
-              <div
-                key={item.id}
-                className={cn(
-                  'flex items-center space-x-3 p-3 rounded-lg border transition-colors',
-                  item.completed ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
-                )}
+          {checklistItems.map((item, index) => (
+            <div
+              key={index}
+              className={cn(
+                'flex items-center space-x-3 p-3 rounded-lg border transition-colors',
+                item.completed ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+              )}
               >
                 <button
-                  onClick={() => handleChecklistToggle(item.id, !item.completed)}
-                  className="flex-shrink-0"
+                  onClick={() => item.clickable && handleChecklistToggle(item.key, !item.completed)}
+                  className={cn(
+                    "flex-shrink-0",
+                    item.clickable ? "cursor-pointer hover:scale-110 transition-transform" : "cursor-default"
+                  )}
+                  disabled={!item.clickable}
                 >
                   {item.completed ? (
                     <CheckCircle className="w-5 h-5 text-green-500" />
@@ -227,19 +248,14 @@ const ChecklistView: React.FC = () => {
                     'font-medium',
                     item.completed ? 'text-green-800 line-through' : 'text-gray-800'
                   )}>
-                    {block.title}
+                    {item.name}
                   </h4>
                   <p className="text-sm text-gray-500">
-                    {format(block.start, 'HH:mm')} - {format(block.end, 'HH:mm')}
+                    {item.clickable ? 'Click to toggle' : 'Auto-updated from time blocks'}
                   </p>
                 </div>
-                <div 
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: getCategoryColor(block.categoryId) }}
-                />
               </div>
-            );
-          })}
+            ))}
         </div>
       </div>
     </div>

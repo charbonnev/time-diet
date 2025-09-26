@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppStore } from '@/store';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, startOfWeek, endOfWeek, isSameMonth } from 'date-fns';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -18,7 +18,9 @@ const CalendarView: React.FC = () => {
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
-  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const calendarStart = startOfWeek(monthStart);
+  const calendarEnd = endOfWeek(monthEnd);
+  const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
   const previousMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
@@ -33,7 +35,7 @@ const CalendarView: React.FC = () => {
     const updateDayStatuses = async () => {
       const statuses: Record<string, string> = {};
       
-      for (const day of daysInMonth) {
+      for (const day of calendarDays) {
         const dateStr = format(day, 'yyyy-MM-dd');
         
         try {
@@ -66,7 +68,7 @@ const CalendarView: React.FC = () => {
     };
     
     updateDayStatuses();
-  }, [currentMonth, daysInMonth, loadScheduleForDate, loadChecklistForDate]);
+  }, [currentMonth, calendarDays, loadScheduleForDate, loadChecklistForDate]);
 
   const getDayStatus = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
@@ -139,10 +141,11 @@ const CalendarView: React.FC = () => {
 
         {/* Calendar days */}
         <div className="grid grid-cols-7 gap-1">
-          {daysInMonth.map(date => {
+          {calendarDays.map((date: Date) => {
             const status = getDayStatus(date);
             const isCurrentDay = isSameDay(date, new Date(currentDate));
             const isTodayDate = isToday(date);
+            const isCurrentMonthDay = isSameMonth(date, currentMonth);
 
             return (
               <button
@@ -152,7 +155,8 @@ const CalendarView: React.FC = () => {
                   'p-3 rounded-lg text-sm font-medium transition-all relative',
                   'hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500',
                   isCurrentDay && 'ring-2 ring-blue-500 bg-blue-50',
-                  isTodayDate && 'font-bold'
+                  isTodayDate && 'font-bold',
+                  !isCurrentMonthDay && 'text-gray-400 opacity-50'
                 )}
               >
                 <div className="flex flex-col items-center space-y-1">
