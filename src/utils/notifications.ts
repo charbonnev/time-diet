@@ -142,22 +142,51 @@ export function clearScheduledNotifications(timeoutIds: number[]): void {
 
 /**
  * Check if it's time for checklist reminder (after 21:00)
+ * Only show if user hasn't manually filled any checklist items today
  */
-export function shouldShowChecklistReminder(): boolean {
+export async function shouldShowChecklistReminder(): Promise<boolean> {
   const now = new Date();
   const checklistTime = new Date(now);
   checklistTime.setHours(21, 0, 0, 0);
   
-  const shouldShow = now >= checklistTime && now.getHours() < 24;
-  console.log('🔔 Checklist reminder check:', {
-    currentTime: now.toLocaleTimeString(),
-    checklistTime: checklistTime.toLocaleTimeString(),
-    shouldShow
-  });
+  const isTimeForReminder = now >= checklistTime && now.getHours() < 24;
   
-  // Temporarily disable automatic reminders for testing
-  console.log('🔔 Checklist reminder DISABLED for testing');
-  return false;
+  if (!isTimeForReminder) {
+    return false;
+  }
+
+  try {
+    // Import here to avoid circular dependency
+    const { getChecklist } = await import('@/utils/storage');
+    const { getCurrentDateString } = await import('@/utils/time');
+    
+    const today = getCurrentDateString();
+    const todayChecklist = await getChecklist(today);
+    
+    // If no checklist exists, show reminder
+    if (!todayChecklist) {
+      console.log('🔔 Checklist reminder: No checklist found, showing reminder');
+      return true;
+    }
+    
+    // Check if user has manually filled any items (excluding auto-calculated focusBlocksCompleted)
+    const hasManualInput = todayChecklist.wake0730 || 
+                          todayChecklist.noWeekdayYTGames || 
+                          todayChecklist.lightsOut2330;
+    
+    if (hasManualInput) {
+      console.log('🔔 Checklist reminder: User has manual input, skipping reminder');
+      return false;
+    }
+    
+    console.log('🔔 Checklist reminder: No manual input found, showing reminder');
+    return true;
+    
+  } catch (error) {
+    console.error('🔔 Error checking checklist for reminder:', error);
+    // If there's an error, show the reminder to be safe
+    return true;
+  }
 }
 
 /**

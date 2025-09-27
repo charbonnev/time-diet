@@ -95,7 +95,7 @@ const SettingsView: React.FC = () => {
           console.log('🔔 Falling back to direct API...');
           
           // Fallback to direct notification
-          const notification = new Notification('🎯 Time Diet Test', {
+          new Notification('🎯 Time Diet Test', {
             body: 'This is how your notifications will look and sound! 🔊',
             icon: '/pwa-192x192.png',
             badge: '/pwa-192x192.png',

@@ -25,25 +25,71 @@ const ChecklistView: React.FC = () => {
     loadChecklistForDate(currentDate);
   }, [currentDate, loadScheduleForDate, loadChecklistForDate]);
 
-  // Generate sample streak data for the last 7 days
+  // Load real streak data for the last 7 days
   useEffect(() => {
-    const data = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateStr = format(date, 'yyyy-MM-dd');
-      
-      // Simulate success rates for demo
-      const successRate = Math.floor(Math.random() * 40) + 60; // 60-100%
-      
-      data.push({
-        date: format(date, 'MMM dd'),
-        successRate,
-        points: Math.floor((successRate / 100) * 96)
-      });
-    }
-    setStreakData(data);
-  }, []);
+    const loadStreakData = async () => {
+      try {
+        // Import storage functions
+        const { getChecklist } = await import('@/utils/storage');
+        
+        const data = [];
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          const dateStr = format(date, 'yyyy-MM-dd');
+          
+          try {
+            // Try to get existing checklist
+            const checklist = await getChecklist(dateStr);
+            
+            let checkmarks = 0;
+            let hasData = false;
+            
+            if (checklist) {
+              // Calculate checkmarks from existing checklist
+              if (checklist.wake0730) checkmarks++;
+              if ((checklist.focusBlocksCompleted ?? 0) >= 3) checkmarks++;
+              if (checklist.noWeekdayYTGames) checkmarks++;
+              if (checklist.lightsOut2330) checkmarks++;
+              
+              hasData = checklist.wake0730 || checklist.noWeekdayYTGames || checklist.lightsOut2330 || (checklist.focusBlocksCompleted ?? 0) > 0;
+            }
+            
+            const successRate = Math.round((checkmarks / 4) * 100);
+            
+            data.push({
+              date: format(date, 'MMM dd'),
+              successRate,
+              points: Math.floor((successRate / 100) * 96),
+              checkmarks,
+              hasData
+            });
+            
+          } catch (error) {
+            console.error(`Error loading checklist for ${dateStr}:`, error);
+            // Add placeholder data for dates with errors
+            data.push({
+              date: format(date, 'MMM dd'),
+              successRate: 0,
+              points: 0,
+              checkmarks: 0,
+              hasData: false
+            });
+          }
+        }
+        
+        console.log('📊 Loaded real streak data:', data);
+        setStreakData(data);
+        
+      } catch (error) {
+        console.error('Error loading streak data:', error);
+        // Fallback to empty data
+        setStreakData([]);
+      }
+    };
+
+    loadStreakData();
+  }, [currentDate]); // Re-load when current date changes
 
   const handleChecklistToggle = async (itemKey: keyof Checklist, newValue: boolean) => {
     await updateChecklistItem(currentDate, { [itemKey]: newValue });

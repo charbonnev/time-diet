@@ -79,9 +79,10 @@ export function useNotifications() {
   useEffect(() => {
     if (!settings.notificationsEnabled) return;
 
-    const checkReminders = () => {
+    const checkReminders = async () => {
       // Checklist reminder at 21:00
-      if (shouldShowChecklistReminder() && !checklistReminderShown.current) {
+      const shouldShowChecklist = await shouldShowChecklistReminder();
+      if (shouldShowChecklist && !checklistReminderShown.current) {
         showChecklistReminder();
         checklistReminderShown.current = true;
       }
