@@ -3,7 +3,6 @@ import { useAppStore } from '@/store';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, startOfWeek, endOfWeek, isSameMonth, parseISO } from 'date-fns';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getCurrentDateString } from '@/utils/time';
 
 const CalendarView: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -29,20 +28,71 @@ const CalendarView: React.FC = () => {
 
   // Update day statuses when month changes
   useEffect(() => {
-    console.log('📅 CalendarView: COMPONENT MOUNTED');
+    console.log('📅 CalendarView: Loading calendar with real performance data');
     
-    // For now, just show a simple calendar without loading all the data
-    // This prevents the massive performance hit from loading 42 days of data
-    const statuses: Record<string, string> = {};
+    const loadCalendarData = async () => {
+      try {
+        // Import storage functions
+        const { getChecklist } = await import('@/utils/storage');
+        
+        const statuses: Record<string, string> = {};
+        
+        // Load checklist data for all visible calendar days
+        const promises = calendarDays.map(async (date) => {
+          const dateStr = format(date, 'yyyy-MM-dd');
+          
+          try {
+            const checklist = await getChecklist(dateStr);
+            
+            if (!checklist) {
+              statuses[dateStr] = 'empty';
+              return;
+            }
+            
+            // Calculate performance based on checklist completion
+            let checkmarks = 0;
+            if (checklist.wake0730) checkmarks++;
+            if ((checklist.focusBlocksCompleted ?? 0) >= 3) checkmarks++;
+            if (checklist.noWeekdayYTGames) checkmarks++;
+            if (checklist.lightsOut2330) checkmarks++;
+            
+            const successRate = (checkmarks / 4) * 100;
+            
+            // Determine status based on success rate
+            if (successRate >= 80) {
+              statuses[dateStr] = 'excellent';
+            } else if (successRate >= 60) {
+              statuses[dateStr] = 'good';
+            } else if (successRate >= 40) {
+              statuses[dateStr] = 'fair';
+            } else if (successRate > 0) {
+              statuses[dateStr] = 'poor';
+            } else {
+              // Check if there's any manual input (even if 0% success)
+              const hasAnyInput = checklist.wake0730 || checklist.noWeekdayYTGames || checklist.lightsOut2330 || (checklist.focusBlocksCompleted ?? 0) > 0;
+              statuses[dateStr] = hasAnyInput ? 'poor' : 'scheduled';
+            }
+            
+          } catch (error) {
+            console.error(`Error loading checklist for ${dateStr}:`, error);
+            statuses[dateStr] = 'empty';
+          }
+        });
+        
+        await Promise.all(promises);
+        setDayStatuses(statuses);
+        
+        console.log('📅 CalendarView: Real performance data loaded', statuses);
+        
+      } catch (error) {
+        console.error('Error loading calendar data:', error);
+        // Fallback to empty statuses
+        setDayStatuses({});
+      }
+    };
     
-    // Only mark today and a few sample days to show the concept works
-    const today = getCurrentDateString();
-    statuses[today] = 'good'; // Mark today as good for demo
-    
-    setDayStatuses(statuses);
-    
-    console.log('📅 CalendarView: Lightweight calendar loaded');
-  }, [currentMonth]); // Removed heavy dependencies
+    loadCalendarData();
+  }, [currentMonth, calendarDays]);
 
   const getDayStatus = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
@@ -60,16 +110,6 @@ const CalendarView: React.FC = () => {
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'excellent': return 'Excellent (80%+)';
-      case 'good': return 'Good (60-79%)';
-      case 'fair': return 'Fair (40-59%)';
-      case 'poor': return 'Poor (<40%)';
-      case 'scheduled': return 'Scheduled';
-      default: return 'No schedule';
-    }
-  };
 
   const handleDayClick = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
