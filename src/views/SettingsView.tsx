@@ -10,12 +10,16 @@ const SettingsView: React.FC = () => {
   const { isInstallable, isInstalled, installApp } = usePWAInstall();
 
   const handleNotificationToggle = async () => {
-    if (!settings.notificationsEnabled) {
+    // Optimistic update for immediate UI feedback
+    const newValue = !settings.notificationsEnabled;
+    
+    if (newValue) {
       const permission = await requestPermission();
       if (permission === 'granted') {
         await updateSettings({ notificationsEnabled: true });
       } else {
         alert('Notification permission is required to enable notifications.');
+        return; // Don't update if permission denied
       }
     } else {
       await updateSettings({ notificationsEnabled: false });
@@ -28,6 +32,115 @@ const SettingsView: React.FC = () => {
 
   const handleSoundProfileChange = async (profile: 'default' | 'silent' | 'vibrate') => {
     await updateSettings({ soundProfile: profile });
+  };
+
+  const handleTestNotification = async () => {
+    console.log('🔔 Testing notification...');
+    
+    if (!('Notification' in window)) {
+      alert('❌ Notifications are not supported in this browser.');
+      return;
+    }
+
+    if (Notification.permission === 'denied') {
+      alert('❌ Notifications are blocked. Please enable them in your browser settings.');
+      return;
+    }
+
+    if (Notification.permission !== 'granted') {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        alert('❌ Notification permission denied.');
+        return;
+      }
+    }
+
+    try {
+      console.log('🔔 Creating notification...');
+      
+      // Check if we have a service worker (PWA context)
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        console.log('🔔 Using Service Worker notification');
+        
+        // Use Service Worker for PWA notifications (better mobile support)
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification('🎯 Time Diet Test', {
+          body: 'This is how your notifications will look and sound! 🔊',
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          tag: 'test-notification',
+          requireInteraction: false,
+          silent: false // This ensures sound plays
+        });
+        
+        console.log('🔔 Service Worker notification created');
+        
+      } else {
+        console.log('🔔 Using direct Notification API');
+        
+        // Fallback to direct notification for non-PWA contexts
+        const notification = new Notification('🎯 Time Diet Test', {
+          body: 'This is how your notifications will look and sound! 🔊',
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          tag: 'test-notification',
+          requireInteraction: false,
+          silent: false // This ensures sound plays
+        });
+
+        console.log('🔔 Direct notification created:', notification);
+
+        // Handle notification events
+        notification.onclick = () => {
+          console.log('🔔 Notification clicked');
+          notification.close();
+          window.focus(); // Bring the app to focus
+        };
+
+        notification.onshow = () => {
+          console.log('🔔 Notification shown');
+        };
+
+        notification.onerror = (error) => {
+          console.error('🔔 Notification error:', error);
+        };
+
+        // Auto-close after 8 seconds
+        setTimeout(() => {
+          console.log('🔔 Auto-closing notification');
+          notification.close();
+        }, 8000);
+      }
+
+      // Also try to play a system sound
+      try {
+        // Create an audio context to play a beep sound
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800; // 800Hz tone
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+        
+        console.log('🔊 Custom sound played');
+      } catch (error) {
+        console.log('🔊 Could not play custom sound:', error);
+      }
+
+      // Show a temporary in-app notification as well
+      alert('🔔 Test notification sent! Check your system notifications (top-right corner on Windows/Linux, top-right on Mac).');
+      
+    } catch (error) {
+      console.error('🔔 Error creating notification:', error);
+      alert('❌ Error creating notification: ' + (error instanceof Error ? error.message : String(error)));
+    }
   };
 
   const handleInstallClick = async () => {
@@ -67,6 +180,20 @@ const SettingsView: React.FC = () => {
             />
           </button>
         </div>
+
+        {/* Test Notification */}
+        {settings.notificationsEnabled && (
+          <div className="mb-4">
+            <button
+              onClick={handleTestNotification}
+              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-colors"
+            >
+              <Bell className="w-4 h-4" />
+              Test Notification
+            </button>
+            <p className="text-xs text-gray-500 mt-1">Click to see how notifications look and sound</p>
+          </div>
+        )}
 
         {/* Early Warning */}
         {settings.notificationsEnabled && (

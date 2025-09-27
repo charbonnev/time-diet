@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
+import fs from 'fs'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -43,6 +44,18 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  server: {
+    // Disable HTTPS for easier proxy setup
+    // https: fs.existsSync('cert.pem') && fs.existsSync('key.pem') ? {
+    //   key: fs.readFileSync('key.pem'),
+    //   cert: fs.readFileSync('cert.pem'),
+    // } : undefined,
+    host: true,
+  },
+  preview: {
+    host: true,
+    // Also disable HTTPS for preview server
   },
 })
 

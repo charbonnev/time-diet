@@ -57,10 +57,21 @@ export function getCurrentTimeString(): string {
 }
 
 /**
- * Get current date as YYYY-MM-DD string
+ * Get current date as YYYY-MM-DD string in local timezone
  */
+let lastDateResult: string | null = null;
+
 export function getCurrentDateString(): string {
-  return format(new Date(), 'yyyy-MM-dd');
+  const now = new Date();
+  // Ensure we get the local date, not UTC
+  const localDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const result = format(localDate, 'yyyy-MM-dd');
+  // Only log if we haven't logged this result recently
+  if (lastDateResult !== result) {
+    console.log('📅 getCurrentDateString:', result);
+    lastDateResult = result;
+  }
+  return result;
 }
 
 /**

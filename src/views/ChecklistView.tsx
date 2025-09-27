@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAppStore } from '@/store';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { CheckCircle, Circle, Target, TrendingUp, Calendar } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,7 @@ const ChecklistView: React.FC = () => {
   const [streakData, setStreakData] = useState<any[]>([]);
 
   useEffect(() => {
+    console.log('✅ ChecklistView: Loading data for date:', currentDate);
     loadScheduleForDate(currentDate);
     loadChecklistForDate(currentDate);
   }, [currentDate, loadScheduleForDate, loadChecklistForDate]);
@@ -56,6 +57,11 @@ const ChecklistView: React.FC = () => {
     );
   }
 
+  // Calculate focus blocks completed from actual time blocks
+  const focusBlocksCompleted = currentSchedule?.blocks.filter(block => 
+    block.title.toLowerCase().includes('focus') && block.status === 'completed'
+  ).length || 0;
+
   // Calculate checklist items from the actual Checklist interface
   const checklistItems = [
     { 
@@ -65,8 +71,8 @@ const ChecklistView: React.FC = () => {
       clickable: true
     },
     { 
-      name: 'Focus Blocks Completed', 
-      completed: (currentChecklist?.focusBlocksCompleted || 0) >= 4,
+      name: `Focus Blocks Completed (${focusBlocksCompleted}/4)`, 
+      completed: focusBlocksCompleted >= 4,
       key: 'focusBlocksCompleted' as keyof Checklist,
       clickable: false // This is auto-updated from time blocks
     },
@@ -112,7 +118,7 @@ const ChecklistView: React.FC = () => {
     <div className="p-4">
       <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
         <Target className="w-5 h-5 mr-2" />
-        Daily Checklist
+        Daily Checklist ({format(parseISO(currentDate), 'PPP')})
       </h2>
 
       {/* Progress Overview */}
@@ -143,8 +149,8 @@ const ChecklistView: React.FC = () => {
             <h3 className="text-sm font-semibold text-gray-700">Date</h3>
             <Calendar className="w-4 h-4 text-purple-500" />
           </div>
-          <div className="text-lg font-bold text-gray-900">{format(new Date(currentDate), 'MMM dd')}</div>
-          <div className="text-sm text-gray-500">{format(new Date(currentDate), 'EEEE')}</div>
+          <div className="text-lg font-bold text-gray-900">{format(parseISO(currentDate), 'MMM dd')}</div>
+          <div className="text-sm text-gray-500">{format(parseISO(currentDate), 'EEEE')}</div>
         </div>
       </div>
 

@@ -567,6 +567,7 @@ export const useAppStore = create<AppState>()(
 
         // Utility
         setCurrentDate: (date: string) => {
+          console.log('🔄 Store: setCurrentDate called with:', date, 'Previous:', get().currentDate);
           set({ currentDate: date });
         },
 

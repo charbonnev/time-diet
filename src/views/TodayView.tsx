@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useAppStore } from '@/store';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { TimeBlockInstance } from '@/types';
 import { cn } from '@/lib/utils';
 import { CheckCircle, XCircle, Clock, Edit } from 'lucide-react';
+import { getCurrentDateString } from '@/utils/time';
 import Timeline from '@/components/Timeline';
 
 const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string }> = ({ block, categoryColor }) => {
@@ -152,10 +153,37 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string 
 };
 
 const TodayView: React.FC = () => {
-  const { currentSchedule, categories, loadScheduleForDate, currentDate, templates, applyTemplateToDate } = useAppStore();
+  const { currentSchedule, categories, loadScheduleForDate, templates, applyTemplateToDate, setCurrentDate, currentDate } = useAppStore();
 
   useEffect(() => {
-    loadScheduleForDate(currentDate);
+    console.log('🏠 TodayView: COMPONENT MOUNTED');
+    
+    // If no currentDate is set, default to today
+    const today = getCurrentDateString();
+    const { currentDate: storeCurrentDate } = useAppStore.getState();
+    
+    if (!storeCurrentDate) {
+      console.log('🏠 TodayView: No date set, defaulting to today:', today);
+      setCurrentDate(today);
+    } else {
+      console.log('🏠 TodayView: Using selected date:', storeCurrentDate);
+    }
+    
+    // Load schedule for the current date (could be today or a selected date)
+    const dateToLoad = storeCurrentDate || today;
+    loadScheduleForDate(dateToLoad);
+
+    return () => {
+      console.log('🏠 TodayView: COMPONENT UNMOUNTED');
+    };
+  }, []); // Only run on mount to avoid loops
+
+  // Load schedule when currentDate changes (e.g., from calendar selection)
+  useEffect(() => {
+    if (currentDate) {
+      console.log('🏠 TodayView: Loading schedule for date:', currentDate);
+      loadScheduleForDate(currentDate);
+    }
   }, [currentDate, loadScheduleForDate]);
 
   const getCategoryColor = (categoryId: string) => {
@@ -185,10 +213,12 @@ const TodayView: React.FC = () => {
     );
   }
 
+  const isToday = currentDate === getCurrentDateString();
+  
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold text-gray-900 mb-4">
-        Today's Schedule ({format(new Date(currentDate), 'PPP')})
+        {isToday ? "Today's" : "Day"} Schedule ({format(parseISO(currentDate), 'PPP')})
       </h2>
       <div className="space-y-3">
         {currentSchedule.blocks.map((block) => (
