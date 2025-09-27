@@ -174,6 +174,142 @@ const SettingsView: React.FC = () => {
     }
   };
 
+  const handleDelayedTestNotification = async () => {
+    console.log('⏰ Setting up delayed notification test...');
+    
+    if (!('Notification' in window)) {
+      alert('❌ Notifications are not supported in this browser.');
+      return;
+    }
+
+    if (Notification.permission === 'denied') {
+      alert('❌ Notifications are blocked. Please enable them in your browser settings.');
+      return;
+    }
+
+    if (Notification.permission !== 'granted') {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        alert('❌ Notification permission denied.');
+        return;
+      }
+    }
+
+    // Show confirmation and start countdown
+    alert('⏰ Background notification test started! Put the app in the background now. Notification will appear in 10 seconds.');
+    
+    // Set up the delayed notification
+    setTimeout(async () => {
+      try {
+        console.log('⏰ Sending delayed notification...');
+        
+        // Try Service Worker approach first (required for mobile PWAs)
+        if ('serviceWorker' in navigator) {
+          console.log('⏰ Service Worker available');
+          
+          try {
+            // Check for existing registrations
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            console.log('⏰ Existing registrations:', registrations.length);
+            
+            let registration;
+            if (registrations.length > 0) {
+              registration = registrations[0];
+              console.log('⏰ Using existing registration');
+            } else {
+              console.log('⏰ Registering Service Worker...');
+              registration = await navigator.serviceWorker.register('/sw.js');
+              await navigator.serviceWorker.ready;
+              console.log('⏰ Service Worker registered');
+            }
+            
+            // Use Service Worker notification
+            await registration.showNotification('🎯 Time Diet - Background Test', {
+              body: 'This notification appeared while the app was in the background! 🚀',
+              icon: '/pwa-192x192.png',
+              badge: '/pwa-192x192.png',
+              tag: 'background-test-notification',
+              requireInteraction: true, // Keep it visible longer for testing
+              silent: false
+            });
+            
+            console.log('⏰ Background Service Worker notification sent successfully!');
+            
+          } catch (swError) {
+            console.error('⏰ Service Worker failed:', swError);
+            console.log('⏰ Falling back to direct API...');
+            
+            // Fallback to direct notification
+            const notification = new Notification('🎯 Time Diet - Background Test', {
+              body: 'This notification appeared while the app was in the background! 🚀',
+              icon: '/pwa-192x192.png',
+              badge: '/pwa-192x192.png',
+              tag: 'background-test-notification',
+              requireInteraction: true,
+              silent: false
+            });
+            console.log('⏰ Direct background notification created as fallback');
+          }
+          
+        } else {
+          console.log('⏰ Using direct Notification API');
+          
+          // Fallback to direct notification for non-PWA contexts
+          const notification = new Notification('🎯 Time Diet - Background Test', {
+            body: 'This notification appeared while the app was in the background! 🚀',
+            icon: '/favicon.ico',
+            badge: '/favicon.ico',
+            tag: 'background-test-notification',
+            requireInteraction: true,
+            silent: false
+          });
+
+          console.log('⏰ Direct background notification created:', notification);
+
+          // Handle notification events
+          notification.onclick = () => {
+            console.log('⏰ Background notification clicked');
+            notification.close();
+            window.focus(); // Bring the app to focus
+          };
+
+          notification.onshow = () => {
+            console.log('⏰ Background notification shown');
+          };
+
+          notification.onerror = (error) => {
+            console.error('⏰ Background notification error:', error);
+          };
+        }
+
+        // Also try to play a system sound
+        try {
+          // Create an audio context to play a beep sound
+          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          oscillator.frequency.value = 1000; // 1000Hz tone (higher pitch for background test)
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.7);
+          
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.7);
+          
+          console.log('🔊 Background test sound played');
+        } catch (error) {
+          console.log('🔊 Could not play background test sound:', error);
+        }
+        
+      } catch (error) {
+        console.error('⏰ Error creating background notification:', error);
+      }
+    }, 10000); // 10 seconds delay
+  };
+
   const handleInstallClick = async () => {
     const success = await installApp();
     if (!success && isInstallable) {
@@ -215,14 +351,23 @@ const SettingsView: React.FC = () => {
         {/* Test Notification */}
         {settings.notificationsEnabled && (
           <div className="mb-4">
-            <button
-              onClick={handleTestNotification}
-              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-colors"
-            >
-              <Bell className="w-4 h-4" />
-              Test Notification
-            </button>
-            <p className="text-xs text-gray-500 mt-1">Click to see how notifications look and sound</p>
+            <div className="flex gap-2 mb-2">
+              <button
+                onClick={handleTestNotification}
+                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-colors"
+              >
+                <Bell className="w-4 h-4" />
+                Test Now
+              </button>
+              <button
+                onClick={handleDelayedTestNotification}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors"
+              >
+                <Clock className="w-4 h-4" />
+                Test in 10s
+              </button>
+            </div>
+            <p className="text-xs text-gray-500">Click "Test Now" for immediate notification or "Test in 10s" to test background notifications</p>
           </div>
         )}
 
