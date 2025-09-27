@@ -58,22 +58,53 @@ const SettingsView: React.FC = () => {
     try {
       console.log('🔔 Creating notification...');
       
-      // Check if we have a service worker (PWA context)
-      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-        console.log('🔔 Using Service Worker notification');
+      // Try Service Worker approach first (required for mobile PWAs)
+      if ('serviceWorker' in navigator) {
+        console.log('🔔 Service Worker available');
         
-        // Use Service Worker for PWA notifications (better mobile support)
-        const registration = await navigator.serviceWorker.ready;
-        await registration.showNotification('🎯 Time Diet Test', {
-          body: 'This is how your notifications will look and sound! 🔊',
-          icon: '/favicon.ico',
-          badge: '/favicon.ico',
-          tag: 'test-notification',
-          requireInteraction: false,
-          silent: false // This ensures sound plays
-        });
-        
-        console.log('🔔 Service Worker notification created');
+        try {
+          // Check for existing registrations
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          console.log('🔔 Existing registrations:', registrations.length);
+          
+          let registration;
+          if (registrations.length > 0) {
+            registration = registrations[0];
+            console.log('🔔 Using existing registration');
+          } else {
+            console.log('🔔 Registering Service Worker...');
+            registration = await navigator.serviceWorker.register('/sw.js');
+            await navigator.serviceWorker.ready;
+            console.log('🔔 Service Worker registered');
+          }
+          
+          // Use Service Worker notification
+          await registration.showNotification('🎯 Time Diet Test', {
+            body: 'This is how your notifications will look and sound! 🔊',
+            icon: '/pwa-192x192.png',
+            badge: '/pwa-192x192.png',
+            tag: 'test-notification',
+            requireInteraction: false,
+            silent: false
+          });
+          
+          console.log('🔔 Service Worker notification sent successfully!');
+          
+        } catch (swError) {
+          console.error('🔔 Service Worker failed:', swError);
+          console.log('🔔 Falling back to direct API...');
+          
+          // Fallback to direct notification
+          const notification = new Notification('🎯 Time Diet Test', {
+            body: 'This is how your notifications will look and sound! 🔊',
+            icon: '/pwa-192x192.png',
+            badge: '/pwa-192x192.png',
+            tag: 'test-notification',
+            requireInteraction: false,
+            silent: false
+          });
+          console.log('🔔 Direct notification created as fallback');
+        }
         
       } else {
         console.log('🔔 Using direct Notification API');

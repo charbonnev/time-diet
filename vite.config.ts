@@ -46,6 +46,7 @@ export default defineConfig({
     },
   },
   server: {
+    port: 5000,
     // Disable HTTPS for easier proxy setup
     // https: fs.existsSync('cert.pem') && fs.existsSync('key.pem') ? {
     //   key: fs.readFileSync('key.pem'),
@@ -58,4 +59,3 @@ export default defineConfig({
     // Also disable HTTPS for preview server
   },
 })
-

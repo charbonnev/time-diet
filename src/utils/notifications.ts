@@ -32,13 +32,41 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 /**
  * Show a notification
  */
-export function showNotification(title: string, options?: NotificationOptions): void {
-  if (Notification.permission === 'granted') {
-    new Notification(title, {
-      icon: '/pwa-192x192.png',
-      badge: '/pwa-192x192.png',
-      ...options
-    });
+export async function showNotification(title: string, options?: NotificationOptions): Promise<void> {
+  if (Notification.permission !== 'granted') {
+    return;
+  }
+
+  const notificationOptions = {
+    icon: '/pwa-192x192.png',
+    badge: '/pwa-192x192.png',
+    ...options
+  };
+
+  try {
+    // Temporarily skip Service Worker and use direct API for debugging
+    console.log('🔔 Using direct Notification API for:', title);
+    console.log('🔔 Notification permission:', Notification.permission);
+    console.log('🔔 Creating notification with options:', notificationOptions);
+    
+    const notification = new Notification(title, notificationOptions);
+    console.log('🔔 Direct notification created successfully:', notification);
+    
+    // Add event handlers for debugging
+    notification.onshow = () => {
+      console.log('🔔 Notification shown successfully');
+    };
+    
+    notification.onerror = (error) => {
+      console.error('🔔 Notification error:', error);
+    };
+    
+    notification.onclick = () => {
+      console.log('🔔 Notification clicked');
+    };
+    
+  } catch (error) {
+    console.error('🔔 Error showing notification:', error);
   }
 }
 
@@ -92,12 +120,12 @@ export function scheduleNotification(notification: NotificationQueue): number {
   
   if (delay <= 0) {
     // Show immediately if time has passed
-    showNotification(notification.title, { body: notification.body });
+    showNotification(notification.title, { body: notification.body }).catch(console.error);
     return -1;
   }
 
   return window.setTimeout(() => {
-    showNotification(notification.title, { body: notification.body });
+    showNotification(notification.title, { body: notification.body }).catch(console.error);
   }, delay);
 }
 
@@ -120,7 +148,16 @@ export function shouldShowChecklistReminder(): boolean {
   const checklistTime = new Date(now);
   checklistTime.setHours(21, 0, 0, 0);
   
-  return now >= checklistTime && now.getHours() < 24;
+  const shouldShow = now >= checklistTime && now.getHours() < 24;
+  console.log('🔔 Checklist reminder check:', {
+    currentTime: now.toLocaleTimeString(),
+    checklistTime: checklistTime.toLocaleTimeString(),
+    shouldShow
+  });
+  
+  // Temporarily disable automatic reminders for testing
+  console.log('🔔 Checklist reminder DISABLED for testing');
+  return false;
 }
 
 /**
@@ -141,7 +178,7 @@ export function showChecklistReminder(): void {
   showNotification('Daily Checklist', {
     body: 'Time to complete your daily checklist!',
     tag: 'checklist-reminder'
-  });
+  }).catch(console.error);
 }
 
 /**
@@ -151,6 +188,6 @@ export function showLightsOutReminder(): void {
   showNotification('Lights Out', {
     body: 'Time to wind down for the day. Lights out at 23:30!',
     tag: 'lights-out-reminder'
-  });
+  }).catch(console.error);
 }
 
