@@ -7,7 +7,7 @@ import { CheckCircle, XCircle, Clock, Edit } from 'lucide-react';
 import { getCurrentDateString } from '@/utils/time';
 import Timeline from '@/components/Timeline';
 
-const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string }> = ({ block, categoryColor }) => {
+const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string; categoryName: string }> = ({ block, categoryColor, categoryName }) => {
   const { updateBlockStatus, snoozeBlock } = useAppStore();
   const [isEditing, setIsEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(block.title);
@@ -57,7 +57,7 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string 
         getStatusColor(),
         isPast && !isCompleted && !isSkipped && 'opacity-70'
       )}
-      style={{ borderColor: isCurrent ? categoryColor : undefined }}
+      style={{ borderLeftColor: categoryColor }}
     >
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-2">
@@ -69,7 +69,7 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string 
         </span>
       </div>
       
-      <p className="text-sm text-gray-600 mb-3">Category: {block.categoryId}</p>
+      <p className="text-sm text-gray-600 mb-3">Category: {categoryName}</p>
       
       {/* Action Buttons */}
       <div className="flex gap-2 flex-wrap">
@@ -186,8 +186,12 @@ const TodayView: React.FC = () => {
     }
   }, [currentDate, loadScheduleForDate]);
 
-  const getCategoryColor = (categoryId: string) => {
-    return categories.find(cat => cat.id === categoryId)?.color || '#cccccc';
+  const getCategoryInfo = (categoryId: string) => {
+    const category = categories.find(cat => cat.id === categoryId);
+    return {
+      color: category?.color || '#cccccc',
+      name: category?.name || 'Unknown Category'
+    };
   };
 
   const handleApplyDefaultTemplate = async () => {
@@ -221,13 +225,17 @@ const TodayView: React.FC = () => {
         {isToday ? "Today's" : "Day"} Schedule ({format(parseISO(currentDate), 'PPP')})
       </h2>
       <div className="space-y-3">
-        {currentSchedule.blocks.map((block) => (
-          <TimeBlockCard
-            key={block.id}
-            block={block}
-            categoryColor={getCategoryColor(block.categoryId)}
-          />
-        ))}
+        {currentSchedule.blocks.map((block) => {
+          const categoryInfo = getCategoryInfo(block.categoryId);
+          return (
+            <TimeBlockCard
+              key={block.id}
+              block={block}
+              categoryColor={categoryInfo.color}
+              categoryName={categoryInfo.name}
+            />
+          );
+        })}
       </div>
     </div>
   );
