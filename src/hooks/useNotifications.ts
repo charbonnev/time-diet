@@ -18,10 +18,7 @@ export function useNotifications() {
   
   const { 
     currentSchedule, 
-    settings, 
-    saveNotification,
-    scheduleNotifications,
-    clearNotifications
+    settings
   } = useAppStore();
 
   // Request permission on mount
@@ -41,6 +38,9 @@ export function useNotifications() {
       // Clear existing notifications
       clearScheduledNotifications(timeoutIds.current);
       timeoutIds.current = [];
+      
+      // Get store functions
+      const { clearNotifications, saveNotification } = useAppStore.getState();
       await clearNotifications();
 
       // Schedule new notifications
@@ -52,11 +52,6 @@ export function useNotifications() {
       // Save notifications to store
       for (const notification of notifications) {
         await saveNotification(notification);
-      }
-
-      // Use the store's scheduleNotifications function if it exists
-      if (scheduleNotifications) {
-        await scheduleNotifications();
       }
 
       // Schedule with setTimeout
@@ -71,9 +66,10 @@ export function useNotifications() {
 
     return () => {
       clearScheduledNotifications(timeoutIds.current);
+      const { clearNotifications } = useAppStore.getState();
       clearNotifications();
     };
-  }, [currentSchedule, settings.notificationsEnabled, settings.earlyWarningMinutes, saveNotification, scheduleNotifications, clearNotifications]);
+  }, [currentSchedule, settings.notificationsEnabled, settings.earlyWarningMinutes]);
 
   // Check for daily reminders
   useEffect(() => {
@@ -121,6 +117,7 @@ export function useNotifications() {
     requestPermission: requestNotificationPermission,
     clearAll: () => {
       clearScheduledNotifications(timeoutIds.current);
+      const { clearNotifications } = useAppStore.getState();
       clearNotifications();
     }
   };
