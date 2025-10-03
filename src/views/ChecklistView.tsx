@@ -121,10 +121,50 @@ const ChecklistView: React.FC = () => {
 
   const isToday = viewDate === today;
 
+  // Render navigation header separately so it's always visible
+  const renderNavigation = () => {
+    if (!settings.correctionMode) return null;
+    
+    return (
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={handlePreviousDay}
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-gray-900 flex items-center justify-center">
+            <Target className="w-5 h-5 mr-2" />
+            Daily Checklist
+          </h2>
+          <p className="text-sm text-gray-600">{format(parseISO(viewDate), 'PPP')}</p>
+          {!isToday && (
+            <button
+              onClick={handleToday}
+              className="text-sm text-blue-600 hover:text-blue-700 mt-1"
+            >
+              Back to Today
+            </button>
+          )}
+        </div>
+        <button
+          onClick={handleNextDay}
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
+    );
+  };
+
   if (!currentSchedule) {
     return (
-      <div className="p-4 text-center text-gray-500">
-        <p>No schedule available for this day. Apply the default template first!</p>
+      <div className="p-4">
+        {renderNavigation()}
+        <div className="text-center text-gray-500">
+          <p>No schedule available for this day. Apply the default template first!</p>
+        </div>
       </div>
     );
   }
@@ -188,37 +228,7 @@ const ChecklistView: React.FC = () => {
 
   return (
     <div className="p-4">
-      {settings.correctionMode && (
-        <div className="flex items-center justify-between mb-4">
-          <button
-            onClick={handlePreviousDay}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <div className="text-center">
-            <h2 className="text-xl font-bold text-gray-900 flex items-center justify-center">
-              <Target className="w-5 h-5 mr-2" />
-              Daily Checklist
-            </h2>
-            <p className="text-sm text-gray-600">{format(parseISO(viewDate), 'PPP')}</p>
-            {!isToday && (
-              <button
-                onClick={handleToday}
-                className="text-sm text-blue-600 hover:text-blue-700 mt-1"
-              >
-                Back to Today
-              </button>
-            )}
-          </div>
-          <button
-            onClick={handleNextDay}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-      )}
+      {renderNavigation()}
       {!settings.correctionMode && (
         <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
           <Target className="w-5 h-5 mr-2" />

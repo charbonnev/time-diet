@@ -290,10 +290,10 @@ export const useAppStore = create<AppState>()(
         updateSchedule: async (schedule: DaySchedule) => {
           try {
             await saveSchedule(schedule);
-            const { categories } = get();
+            const { categories, currentSchedule } = get();
             
-            const today = getCurrentDateString();
-            if (schedule.date === today) {
+            // Update store if this is the currently loaded schedule (for correction mode)
+            if (currentSchedule && schedule.date === currentSchedule.date) {
               set({ currentSchedule: schedule });
               const categoryPoints = calculateCategoryPoints(schedule.blocks, categories);
               set({ categoryPoints });
@@ -389,8 +389,8 @@ export const useAppStore = create<AppState>()(
 
             await saveChecklist(updatedChecklist);
             
-            const today = getCurrentDateString();
-            if (date === today) {
+            // Update store if this is the currently loaded checklist (for correction mode)
+            if (currentSchedule && date === currentSchedule.date) {
               set({ currentChecklist: updatedChecklist });
             }
 
