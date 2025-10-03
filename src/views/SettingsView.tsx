@@ -2,7 +2,8 @@ import React from 'react';
 import { useAppStore } from '@/store';
 import { useNotifications } from '@/hooks/useNotifications';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
-import { Bell, BellOff, Clock, Download, Check } from 'lucide-react';
+import { pushNotificationManager } from '@/utils/pushNotifications';
+import { Bell, Clock, Download, Check, Server } from 'lucide-react';
 
 const SettingsView: React.FC = () => {
   const { settings, updateSettings } = useAppStore();
@@ -240,7 +241,7 @@ const SettingsView: React.FC = () => {
             console.log('⏰ Falling back to direct API...');
             
             // Fallback to direct notification
-            const notification = new Notification('🎯 Time Diet - Background Test', {
+            new Notification('🎯 Time Diet - Background Test', {
               body: 'This notification appeared while the app was in the background! 🚀',
               icon: '/pwa-192x192.png',
               badge: '/pwa-192x192.png',
@@ -310,6 +311,50 @@ const SettingsView: React.FC = () => {
     }, 10000); // 10 seconds delay
   };
 
+  const handlePushServerTest = async () => {
+    console.log('🚀 Testing push server notification...');
+    
+    try {
+      // First, ensure we're subscribed to push notifications
+      const permission = await pushNotificationManager.requestPermission();
+      if (permission !== 'granted') {
+        alert('❌ Push notification permission denied. Please allow notifications to test the push server.');
+        return;
+      }
+
+      // Initialize and subscribe to push notifications
+      const initialized = await pushNotificationManager.initialize();
+      if (!initialized) {
+        alert('❌ Failed to initialize push notifications. Please check your connection.');
+        return;
+      }
+
+      const subscription = await pushNotificationManager.subscribe();
+      if (!subscription) {
+        alert('❌ Failed to subscribe to push notifications. Please try again.');
+        return;
+      }
+
+      console.log('🚀 Subscribed to push notifications, sending test...');
+
+      // Send test notification through the push server
+      const success = await pushNotificationManager.sendTestNotification(
+        '🚀 Push Server Test',
+        'This notification came from your Railway server! It works even when the app is closed. 🎉'
+      );
+
+      if (success) {
+        alert('🚀 Push server test sent! Check your notifications - this one came from Railway and works even when the app is closed!');
+      } else {
+        alert('❌ Failed to send push server test. Please check the console for errors.');
+      }
+
+    } catch (error) {
+      console.error('🚀 Push server test error:', error);
+      alert('❌ Push server test failed: ' + (error instanceof Error ? error.message : String(error)));
+    }
+  };
+
   const handleInstallClick = async () => {
     const success = await installApp();
     if (!success && isInstallable) {
@@ -351,7 +396,7 @@ const SettingsView: React.FC = () => {
         {/* Test Notification */}
         {settings.notificationsEnabled && (
           <div className="mb-4">
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-2 flex-wrap">
               <button
                 onClick={handleTestNotification}
                 className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-colors"
@@ -366,8 +411,17 @@ const SettingsView: React.FC = () => {
                 <Clock className="w-4 h-4" />
                 Test in 10s
               </button>
+              <button
+                onClick={handlePushServerTest}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white text-sm rounded-md hover:bg-purple-600 transition-colors"
+              >
+                <Server className="w-4 h-4" />
+                Test Push Server
+              </button>
             </div>
-            <p className="text-xs text-gray-500">Click "Test Now" for immediate notification or "Test in 10s" to test background notifications</p>
+            <p className="text-xs text-gray-500">
+              "Test Now" = Local notification • "Test in 10s" = Background test • "Test Push Server" = Railway server (works when app is closed)
+            </p>
           </div>
         )}
 
