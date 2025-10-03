@@ -1,6 +1,6 @@
 // Web Push Notifications utility
-// TODO: Update this URL when deploying the push server to production
-const PUSH_SERVER_URL = 'http://localhost:3001';
+// Using Vite proxy - requests to /api/* get forwarded to the push server
+const PUSH_SERVER_URL = '/api';
 
 export interface PushSubscriptionData {
   endpoint: string;

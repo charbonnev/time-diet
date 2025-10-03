@@ -53,10 +53,26 @@ export default defineConfig({
     //   cert: fs.readFileSync('cert.pem'),
     // } : undefined,
     host: true,
+    proxy: {
+      // Proxy API requests to the push notification server
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   },
   preview: {
     host: true,
     // Also disable HTTPS for preview server
-    allowedHosts: ['efc8ff4ece29.ngrok-free.app']
+    allowedHosts: ['0e1c1e282f0f.ngrok-free.app'],
+    proxy: {
+      // Proxy API requests to the push notification server
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   },
 })
