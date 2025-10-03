@@ -12,6 +12,9 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      srcDir: 'public',
+      filename: 'sw-push.js',
+      strategies: 'injectManifest',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}']
       },
