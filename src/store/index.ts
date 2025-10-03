@@ -232,7 +232,7 @@ export const useAppStore = create<AppState>()(
 
         applyTemplateToDate: async (templateId: string, date: string) => {
           try {
-            const { templates, categories } = get();
+            const { templates } = get();
             const template = templates.find(t => t.id === templateId);
             if (!template) throw new Error('Template not found');
 
@@ -255,9 +255,14 @@ export const useAppStore = create<AppState>()(
             await saveSchedule(schedule);
             
             if (date === get().currentDate) {
-              set({ currentSchedule: schedule });
-              // Update category points
-              const categoryPoints = calculateCategoryPoints(schedule.blocks, categories);
+              // Ensure categories are fresh from storage
+              const freshCategories = await getCategories();
+              set({ 
+                currentSchedule: schedule,
+                categories: freshCategories
+              });
+              // Update category points with fresh categories
+              const categoryPoints = calculateCategoryPoints(schedule.blocks, freshCategories);
               set({ categoryPoints });
             }
           } catch (error) {

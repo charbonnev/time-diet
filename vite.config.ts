@@ -57,5 +57,6 @@ export default defineConfig({
   preview: {
     host: true,
     // Also disable HTTPS for preview server
+    allowedHosts: ['efc8ff4ece29.ngrok-free.app']
   },
 })
