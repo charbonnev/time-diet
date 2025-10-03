@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useAppStore } from '@/store';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, addDays, subDays } from 'date-fns';
 import { TimeBlockInstance } from '@/types';
 import { cn } from '@/lib/utils';
-import { CheckCircle, XCircle, Clock, Edit } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getCurrentDateString } from '@/utils/time';
 import Timeline from '@/components/Timeline';
 
@@ -153,17 +153,25 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string;
 };
 
 const TodayView: React.FC = () => {
-  const { currentSchedule, categories, loadScheduleForDate, templates, applyTemplateToDate } = useAppStore();
+  const { currentSchedule, categories, loadScheduleForDate, templates, applyTemplateToDate, settings } = useAppStore();
   const today = getCurrentDateString();
+  const [viewDate, setViewDate] = useState(today);
 
   useEffect(() => {
-    console.log('🏠 TodayView: COMPONENT MOUNTED - Loading today:', today);
-    loadScheduleForDate(today);
+    console.log('🏠 TodayView: COMPONENT MOUNTED - Loading date:', viewDate);
+    loadScheduleForDate(viewDate);
 
     return () => {
       console.log('🏠 TodayView: COMPONENT UNMOUNTED');
     };
-  }, []); // Only run on mount
+  }, [viewDate, loadScheduleForDate]); // Reload when viewDate changes
+
+  // Reset to today when correction mode is disabled
+  useEffect(() => {
+    if (!settings.correctionMode && viewDate !== today) {
+      setViewDate(today);
+    }
+  }, [settings.correctionMode, today, viewDate]);
 
   const getCategoryInfo = (categoryId: string) => {
     const category = categories.find(cat => cat.id === categoryId);
@@ -176,31 +184,110 @@ const TodayView: React.FC = () => {
   const handleApplyDefaultTemplate = async () => {
     const defaultTemplate = templates.find(t => t.isDefault);
     if (defaultTemplate) {
-      await applyTemplateToDate(defaultTemplate.id, today);
+      await applyTemplateToDate(defaultTemplate.id, viewDate);
     } else {
       console.error('Default template not found');
     }
   };
 
+  const handlePreviousDay = () => {
+    const prevDate = format(subDays(parseISO(viewDate), 1), 'yyyy-MM-dd');
+    setViewDate(prevDate);
+  };
+
+  const handleNextDay = () => {
+    const nextDate = format(addDays(parseISO(viewDate), 1), 'yyyy-MM-dd');
+    setViewDate(nextDate);
+  };
+
+  const handleToday = () => {
+    setViewDate(today);
+  };
+
+  const isToday = viewDate === today;
+
   if (!currentSchedule || currentSchedule.blocks.length === 0) {
     return (
-      <div className="p-4 text-center text-gray-500">
-        <p className="mb-4">No schedule planned for today. Start by creating a template!</p>
-        <button 
-          onClick={handleApplyDefaultTemplate}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition-colors"
-        >
-          Apply Default Template
-        </button>
+      <div className="p-4">
+        {settings.correctionMode && (
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={handlePreviousDay}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <div className="text-center">
+              <h2 className="text-lg font-semibold text-gray-800">
+                {format(parseISO(viewDate), 'PPP')}
+              </h2>
+              {!isToday && (
+                <button
+                  onClick={handleToday}
+                  className="text-sm text-blue-600 hover:text-blue-700"
+                >
+                  Back to Today
+                </button>
+              )}
+            </div>
+            <button
+              onClick={handleNextDay}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+        <div className="text-center text-gray-500">
+          <p className="mb-4">No schedule planned for this day. Start by creating a template!</p>
+          <button 
+            onClick={handleApplyDefaultTemplate}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition-colors"
+          >
+            Apply Default Template
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">
-        Today's Schedule ({format(parseISO(today), 'PPP')})
-      </h2>
+      {settings.correctionMode && (
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={handlePreviousDay}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div className="text-center">
+            <h2 className="text-xl font-bold text-gray-900">
+              {isToday ? "Today's" : "Day"} Schedule
+            </h2>
+            <p className="text-sm text-gray-600">{format(parseISO(viewDate), 'PPP')}</p>
+            {!isToday && (
+              <button
+                onClick={handleToday}
+                className="text-sm text-blue-600 hover:text-blue-700 mt-1"
+              >
+                Back to Today
+              </button>
+            )}
+          </div>
+          <button
+            onClick={handleNextDay}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+      {!settings.correctionMode && (
+        <h2 className="text-xl font-bold text-gray-900 mb-4">
+          Today's Schedule ({format(parseISO(today), 'PPP')})
+        </h2>
+      )}
       <div className="space-y-3">
         {currentSchedule.blocks.map((block) => {
           const categoryInfo = getCategoryInfo(block.categoryId);

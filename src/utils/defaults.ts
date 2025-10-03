@@ -94,7 +94,8 @@ export function createDefaultSettings(): Settings {
     earlyWarningMinutes: 0,
     soundProfile: 'default',
     categoryColors: DEFAULT_CATEGORY_COLORS,
-    computeCategoryPoints: true
+    computeCategoryPoints: true,
+    correctionMode: false
   };
 }
 

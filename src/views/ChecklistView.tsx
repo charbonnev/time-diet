@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppStore } from '@/store';
-import { format, parseISO } from 'date-fns';
-import { CheckCircle, Circle, Target, TrendingUp, Calendar } from 'lucide-react';
+import { format, parseISO, addDays, subDays } from 'date-fns';
+import { CheckCircle, Circle, Target, TrendingUp, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { cn } from '@/lib/utils';
 import { Checklist } from '@/types';
@@ -14,17 +14,26 @@ const ChecklistView: React.FC = () => {
     loadScheduleForDate, 
     loadChecklistForDate,
     updateChecklistItem,
-    categories
+    categories,
+    settings
   } = useAppStore();
 
   const today = getCurrentDateString();
+  const [viewDate, setViewDate] = useState(today);
   const [streakData, setStreakData] = useState<any[]>([]);
 
   useEffect(() => {
-    console.log('✅ ChecklistView: Loading data for today:', today);
-    loadScheduleForDate(today);
-    loadChecklistForDate(today);
-  }, [today, loadScheduleForDate, loadChecklistForDate]);
+    console.log('✅ ChecklistView: Loading data for date:', viewDate);
+    loadScheduleForDate(viewDate);
+    loadChecklistForDate(viewDate);
+  }, [viewDate, loadScheduleForDate, loadChecklistForDate]);
+
+  // Reset to today when correction mode is disabled
+  useEffect(() => {
+    if (!settings.correctionMode && viewDate !== today) {
+      setViewDate(today);
+    }
+  }, [settings.correctionMode, today, viewDate]);
 
   // Load real streak data for the last 7 days
   useEffect(() => {
@@ -93,13 +102,29 @@ const ChecklistView: React.FC = () => {
   }, [today]); // Re-load when date changes (shouldn't happen but just in case)
 
   const handleChecklistToggle = async (itemKey: keyof Checklist, newValue: boolean) => {
-    await updateChecklistItem(today, { [itemKey]: newValue });
+    await updateChecklistItem(viewDate, { [itemKey]: newValue });
   };
+
+  const handlePreviousDay = () => {
+    const prevDate = format(subDays(parseISO(viewDate), 1), 'yyyy-MM-dd');
+    setViewDate(prevDate);
+  };
+
+  const handleNextDay = () => {
+    const nextDate = format(addDays(parseISO(viewDate), 1), 'yyyy-MM-dd');
+    setViewDate(nextDate);
+  };
+
+  const handleToday = () => {
+    setViewDate(today);
+  };
+
+  const isToday = viewDate === today;
 
   if (!currentSchedule) {
     return (
       <div className="p-4 text-center text-gray-500">
-        <p>No schedule available for today. Apply the default template first!</p>
+        <p>No schedule available for this day. Apply the default template first!</p>
       </div>
     );
   }
@@ -163,10 +188,43 @@ const ChecklistView: React.FC = () => {
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-        <Target className="w-5 h-5 mr-2" />
-        Daily Checklist ({format(parseISO(today), 'PPP')})
-      </h2>
+      {settings.correctionMode && (
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={handlePreviousDay}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div className="text-center">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center justify-center">
+              <Target className="w-5 h-5 mr-2" />
+              Daily Checklist
+            </h2>
+            <p className="text-sm text-gray-600">{format(parseISO(viewDate), 'PPP')}</p>
+            {!isToday && (
+              <button
+                onClick={handleToday}
+                className="text-sm text-blue-600 hover:text-blue-700 mt-1"
+              >
+                Back to Today
+              </button>
+            )}
+          </div>
+          <button
+            onClick={handleNextDay}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+      {!settings.correctionMode && (
+        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+          <Target className="w-5 h-5 mr-2" />
+          Daily Checklist ({format(parseISO(today), 'PPP')})
+        </h2>
+      )}
 
       {/* Progress Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -196,8 +254,8 @@ const ChecklistView: React.FC = () => {
             <h3 className="text-sm font-semibold text-gray-700">Date</h3>
             <Calendar className="w-4 h-4 text-purple-500" />
           </div>
-          <div className="text-lg font-bold text-gray-900">{format(parseISO(today), 'MMM dd')}</div>
-          <div className="text-sm text-gray-500">{format(parseISO(today), 'EEEE')}</div>
+          <div className="text-lg font-bold text-gray-900">{format(parseISO(viewDate), 'MMM dd')}</div>
+          <div className="text-sm text-gray-500">{format(parseISO(viewDate), 'EEEE')}</div>
         </div>
       </div>
 

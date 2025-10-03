@@ -64,6 +64,7 @@ export interface Settings {
   soundProfile: SoundProfile;
   categoryColors: Record<string, string>;
   computeCategoryPoints: boolean;
+  correctionMode: boolean; // Allows browsing/editing past dates
 }
 
 export interface ModeState {

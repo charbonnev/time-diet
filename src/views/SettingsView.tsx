@@ -604,7 +604,7 @@ const SettingsView: React.FC = () => {
 
         {/* Sound Profile */}
         {settings.notificationsEnabled && (
-          <div>
+          <div className="mb-4">
             <p className="font-medium text-gray-700 mb-2">Sound Profile</p>
             <div className="flex space-x-2">
               {[
@@ -627,6 +627,26 @@ const SettingsView: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Correction Mode */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium text-gray-700">Correction Mode</p>
+            <p className="text-sm text-gray-500">Allow browsing and editing past dates in Today/Checklist tabs</p>
+          </div>
+          <button
+            onClick={() => updateSettings({ correctionMode: !settings.correctionMode })}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              settings.correctionMode ? 'bg-blue-600' : 'bg-gray-200'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                settings.correctionMode ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
       {/* PWA Installation */}
