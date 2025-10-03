@@ -153,38 +153,17 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string;
 };
 
 const TodayView: React.FC = () => {
-  const { currentSchedule, categories, loadScheduleForDate, templates, applyTemplateToDate, setCurrentDate, currentDate } = useAppStore();
+  const { currentSchedule, categories, loadScheduleForDate, templates, applyTemplateToDate } = useAppStore();
+  const today = getCurrentDateString();
 
   useEffect(() => {
-    console.log('🏠 TodayView: COMPONENT MOUNTED');
-    
-    // If no currentDate is set, default to today
-    const today = getCurrentDateString();
-    const { currentDate: storeCurrentDate } = useAppStore.getState();
-    
-    if (!storeCurrentDate) {
-      console.log('🏠 TodayView: No date set, defaulting to today:', today);
-      setCurrentDate(today);
-    } else {
-      console.log('🏠 TodayView: Using selected date:', storeCurrentDate);
-    }
-    
-    // Load schedule for the current date (could be today or a selected date)
-    const dateToLoad = storeCurrentDate || today;
-    loadScheduleForDate(dateToLoad);
+    console.log('🏠 TodayView: COMPONENT MOUNTED - Loading today:', today);
+    loadScheduleForDate(today);
 
     return () => {
       console.log('🏠 TodayView: COMPONENT UNMOUNTED');
     };
-  }, []); // Only run on mount to avoid loops
-
-  // Load schedule when currentDate changes (e.g., from calendar selection)
-  useEffect(() => {
-    if (currentDate) {
-      console.log('🏠 TodayView: Loading schedule for date:', currentDate);
-      loadScheduleForDate(currentDate);
-    }
-  }, [currentDate, loadScheduleForDate]);
+  }, []); // Only run on mount
 
   const getCategoryInfo = (categoryId: string) => {
     const category = categories.find(cat => cat.id === categoryId);
@@ -197,7 +176,7 @@ const TodayView: React.FC = () => {
   const handleApplyDefaultTemplate = async () => {
     const defaultTemplate = templates.find(t => t.isDefault);
     if (defaultTemplate) {
-      await applyTemplateToDate(defaultTemplate.id, currentDate);
+      await applyTemplateToDate(defaultTemplate.id, today);
     } else {
       console.error('Default template not found');
     }
@@ -217,12 +196,10 @@ const TodayView: React.FC = () => {
     );
   }
 
-  const isToday = currentDate === getCurrentDateString();
-  
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold text-gray-900 mb-4">
-        {isToday ? "Today's" : "Day"} Schedule ({format(parseISO(currentDate), 'PPP')})
+        Today's Schedule ({format(parseISO(today), 'PPP')})
       </h2>
       <div className="space-y-3">
         {currentSchedule.blocks.map((block) => {

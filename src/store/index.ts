@@ -53,7 +53,6 @@ interface AppState {
   notificationQueue: NotificationQueue[];
 
   // UI State
-  currentDate: string;
   isLoading: boolean;
   error: string | null;
 
@@ -101,7 +100,6 @@ interface AppState {
   exportCSV: (startDate: string, endDate: string) => Promise<string>;
   
   // Utility
-  setCurrentDate: (date: string) => void;
   setError: (error: string | null) => void;
   calculateStreaks: () => Promise<void>;
 }
@@ -118,7 +116,6 @@ export const useAppStore = create<AppState>()(
         settings: createDefaultSettings(),
         modeState: createDefaultModeState(),
         notificationQueue: [],
-        currentDate: getCurrentDateString(),
         isLoading: false,
         error: null,
         categoryPoints: [],
@@ -254,7 +251,8 @@ export const useAppStore = create<AppState>()(
 
             await saveSchedule(schedule);
             
-            if (date === get().currentDate) {
+            const today = getCurrentDateString();
+            if (date === today) {
               // Ensure categories are fresh from storage
               const freshCategories = await getCategories();
               set({ 
@@ -294,7 +292,8 @@ export const useAppStore = create<AppState>()(
             await saveSchedule(schedule);
             const { categories } = get();
             
-            if (schedule.date === get().currentDate) {
+            const today = getCurrentDateString();
+            if (schedule.date === today) {
               set({ currentSchedule: schedule });
               const categoryPoints = calculateCategoryPoints(schedule.blocks, categories);
               set({ categoryPoints });
@@ -390,7 +389,8 @@ export const useAppStore = create<AppState>()(
 
             await saveChecklist(updatedChecklist);
             
-            if (date === get().currentDate) {
+            const today = getCurrentDateString();
+            if (date === today) {
               set({ currentChecklist: updatedChecklist });
             }
 
@@ -571,11 +571,6 @@ export const useAppStore = create<AppState>()(
         },
 
         // Utility
-        setCurrentDate: (date: string) => {
-          console.log('🔄 Store: setCurrentDate called with:', date, 'Previous:', get().currentDate);
-          set({ currentDate: date });
-        },
-
         setError: (error: string | null) => {
           set({ error });
         }
@@ -583,7 +578,6 @@ export const useAppStore = create<AppState>()(
       {
         name: 'time-diet-store',
         partialize: (state) => ({
-          currentDate: state.currentDate,
           settings: state.settings
         })
       }

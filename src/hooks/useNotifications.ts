@@ -13,6 +13,7 @@ import {
   showLightsOutReminder
 } from '@/utils/notifications';
 import { pushNotificationManager } from '@/utils/pushNotifications';
+import { getCurrentDateString } from '@/utils/time';
 
 export function useNotifications() {
   const timeoutIds = useRef<number[]>([]);
@@ -51,6 +52,14 @@ export function useNotifications() {
   // Schedule notifications when schedule changes
   useEffect(() => {
     if (!settings.notificationsEnabled || !currentSchedule) {
+      return;
+    }
+
+    // CRITICAL: Only schedule notifications for today's schedule
+    // This prevents the bug where browsing other dates clears today's notifications
+    const today = getCurrentDateString();
+    if (currentSchedule.date !== today) {
+      console.log('🔔 Skipping notification scheduling - not today\'s schedule:', currentSchedule.date);
       return;
     }
 

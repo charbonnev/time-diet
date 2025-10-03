@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useAppStore } from '@/store';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, startOfWeek, endOfWeek, isSameMonth, parseISO } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, startOfWeek, endOfWeek, isSameMonth } from 'date-fns';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getCurrentDateString } from '@/utils/time';
+import DayDetailModal from '@/components/DayDetailModal';
 
 const CalendarView: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [dayStatuses, setDayStatuses] = useState<Record<string, string>>({});
-  const { 
-    currentDate, 
-    setCurrentDate 
-  } = useAppStore();
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [showDayModal, setShowDayModal] = useState(false);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -113,16 +112,23 @@ const CalendarView: React.FC = () => {
 
   const handleDayClick = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    console.log('📅 CalendarView: Setting date to:', dateStr);
-    setCurrentDate(dateStr);
+    console.log('📅 CalendarView: Day clicked:', dateStr);
+    setSelectedDate(dateStr);
   };
 
   const handleDayDoubleClick = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    console.log('📅 CalendarView: Double-click - navigating to day view for:', dateStr);
-    setCurrentDate(dateStr);
-    // Navigate to Today view to show the selected day's details
-    window.location.href = '/';
+    const today = getCurrentDateString();
+    
+    // Don't open modal for today - user should use Today tab
+    if (dateStr === today) {
+      console.log('📅 CalendarView: Today double-clicked, ignoring (use Today tab)');
+      return;
+    }
+    
+    console.log('📅 CalendarView: Double-click - opening day detail modal for:', dateStr);
+    setSelectedDate(dateStr);
+    setShowDayModal(true);
   };
 
   return (
@@ -167,7 +173,8 @@ const CalendarView: React.FC = () => {
         <div className="grid grid-cols-7 gap-1">
           {calendarDays.map((date: Date) => {
             const status = getDayStatus(date);
-            const isCurrentDay = isSameDay(date, parseISO(currentDate));
+            const dateStr = format(date, 'yyyy-MM-dd');
+            const isSelected = selectedDate === dateStr;
             const isTodayDate = isToday(date);
             const isCurrentMonthDay = isSameMonth(date, currentMonth);
 
@@ -180,7 +187,7 @@ const CalendarView: React.FC = () => {
                 className={cn(
                   'p-3 rounded-lg text-sm font-medium transition-all relative',
                   'hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500',
-                  isCurrentDay && 'ring-2 ring-blue-500 bg-blue-50',
+                  isSelected && 'ring-2 ring-blue-500 bg-blue-50',
                   isTodayDate && 'font-bold',
                   !isCurrentMonthDay && 'text-gray-400 opacity-50'
                 )}
@@ -222,6 +229,14 @@ const CalendarView: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Day Detail Modal */}
+      {showDayModal && selectedDate && (
+        <DayDetailModal
+          date={selectedDate}
+          onClose={() => setShowDayModal(false)}
+        />
+      )}
     </div>
   );
 };

@@ -5,10 +5,10 @@ import { CheckCircle, Circle, Target, TrendingUp, Calendar } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { cn } from '@/lib/utils';
 import { Checklist } from '@/types';
+import { getCurrentDateString } from '@/utils/time';
 
 const ChecklistView: React.FC = () => {
   const { 
-    currentDate, 
     currentSchedule, 
     currentChecklist, 
     loadScheduleForDate, 
@@ -17,13 +17,14 @@ const ChecklistView: React.FC = () => {
     categories
   } = useAppStore();
 
+  const today = getCurrentDateString();
   const [streakData, setStreakData] = useState<any[]>([]);
 
   useEffect(() => {
-    console.log('✅ ChecklistView: Loading data for date:', currentDate);
-    loadScheduleForDate(currentDate);
-    loadChecklistForDate(currentDate);
-  }, [currentDate, loadScheduleForDate, loadChecklistForDate]);
+    console.log('✅ ChecklistView: Loading data for today:', today);
+    loadScheduleForDate(today);
+    loadChecklistForDate(today);
+  }, [today, loadScheduleForDate, loadChecklistForDate]);
 
   // Load real streak data for the last 7 days
   useEffect(() => {
@@ -89,10 +90,10 @@ const ChecklistView: React.FC = () => {
     };
 
     loadStreakData();
-  }, [currentDate]); // Re-load when current date changes
+  }, [today]); // Re-load when date changes (shouldn't happen but just in case)
 
   const handleChecklistToggle = async (itemKey: keyof Checklist, newValue: boolean) => {
-    await updateChecklistItem(currentDate, { [itemKey]: newValue });
+    await updateChecklistItem(today, { [itemKey]: newValue });
   };
 
   if (!currentSchedule) {
@@ -164,7 +165,7 @@ const ChecklistView: React.FC = () => {
     <div className="p-4">
       <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
         <Target className="w-5 h-5 mr-2" />
-        Daily Checklist ({format(parseISO(currentDate), 'PPP')})
+        Daily Checklist ({format(parseISO(today), 'PPP')})
       </h2>
 
       {/* Progress Overview */}
@@ -195,8 +196,8 @@ const ChecklistView: React.FC = () => {
             <h3 className="text-sm font-semibold text-gray-700">Date</h3>
             <Calendar className="w-4 h-4 text-purple-500" />
           </div>
-          <div className="text-lg font-bold text-gray-900">{format(parseISO(currentDate), 'MMM dd')}</div>
-          <div className="text-sm text-gray-500">{format(parseISO(currentDate), 'EEEE')}</div>
+          <div className="text-lg font-bold text-gray-900">{format(parseISO(today), 'MMM dd')}</div>
+          <div className="text-sm text-gray-500">{format(parseISO(today), 'EEEE')}</div>
         </div>
       </div>
 
