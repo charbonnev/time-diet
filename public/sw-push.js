@@ -8,10 +8,11 @@ precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
 self.addEventListener('push', function(event) {
-  console.log('Push notification received:', event);
+  console.log('🔔 Push notification received:', event);
+  console.log('🔔 Event data exists:', !!event.data);
   
   if (!event.data) {
-    console.log('Push event but no data');
+    console.log('🔔 Push event but no data');
     return;
   }
 
@@ -65,7 +66,7 @@ self.addEventListener('notificationclick', function(event) {
 
   // Open or focus the app
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
       // If app is already open, focus it
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
@@ -75,8 +76,8 @@ self.addEventListener('notificationclick', function(event) {
       }
       
       // If app is not open, open it
-      if (clients.openWindow) {
-        return clients.openWindow('/');
+      if (self.clients.openWindow) {
+        return self.clients.openWindow('/');
       }
     })
   );
@@ -97,4 +98,18 @@ self.addEventListener('sync', function(event) {
   }
 });
 
-console.log('Push Service Worker loaded and ready!');
+console.log('🔔 Push Service Worker loaded and ready!');
+
+// Add debugging for service worker events
+self.addEventListener('install', function() {
+  console.log('🔔 Service Worker installing...');
+});
+
+self.addEventListener('activate', function() {
+  console.log('🔔 Service Worker activated!');
+});
+
+// Debug all message events
+self.addEventListener('message', function(event) {
+  console.log('🔔 Service Worker received message:', event.data);
+});

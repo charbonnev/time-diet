@@ -1,6 +1,6 @@
 // Web Push Notifications utility
 // Using Vite proxy - requests to /api/* get forwarded to the push server
-const PUSH_SERVER_URL = import.meta.env.PROD ? 'https://time-diet-push-server-production.up.railway.app' : '/api';
+const PUSH_SERVER_URL = (import.meta as any).env.PROD ? 'https://time-diet-push-server-production.up.railway.app' : '/api';
 
 export interface PushSubscriptionData {
   endpoint: string;
