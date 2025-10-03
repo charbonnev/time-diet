@@ -10,6 +10,7 @@ const CalendarView: React.FC = () => {
   const [dayStatuses, setDayStatuses] = useState<Record<string, string>>({});
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showDayModal, setShowDayModal] = useState(false);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -25,6 +26,15 @@ const CalendarView: React.FC = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
   };
 
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+      }
+    };
+  }, [longPressTimer]);
+
   // Update day statuses when month changes
   useEffect(() => {
     console.log('📅 CalendarView: Loading calendar with real performance data');
@@ -36,8 +46,15 @@ const CalendarView: React.FC = () => {
         
         const statuses: Record<string, string> = {};
         
+        // Calculate calendar days inside effect to avoid dependency issues
+        const monthStart = startOfMonth(currentMonth);
+        const monthEnd = endOfMonth(currentMonth);
+        const calendarStart = startOfWeek(monthStart);
+        const calendarEnd = endOfWeek(monthEnd);
+        const daysToLoad = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+        
         // Load checklist data for all visible calendar days
-        const promises = calendarDays.map(async (date) => {
+        const promises = daysToLoad.map(async (date) => {
           const dateStr = format(date, 'yyyy-MM-dd');
           
           try {
@@ -91,7 +108,7 @@ const CalendarView: React.FC = () => {
     };
     
     loadCalendarData();
-  }, [currentMonth, calendarDays]);
+  }, [currentMonth]); // Only depend on currentMonth to avoid infinite loop
 
   const getDayStatus = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
@@ -116,19 +133,33 @@ const CalendarView: React.FC = () => {
     setSelectedDate(dateStr);
   };
 
-  const handleDayDoubleClick = (date: Date) => {
+  const handleLongPress = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const today = getCurrentDateString();
     
     // Don't open modal for today - user should use Today tab
     if (dateStr === today) {
-      console.log('📅 CalendarView: Today double-clicked, ignoring (use Today tab)');
+      console.log('📅 CalendarView: Today long-pressed, ignoring (use Today tab)');
       return;
     }
     
-    console.log('📅 CalendarView: Double-click - opening day detail modal for:', dateStr);
+    console.log('📅 CalendarView: Long press - opening day detail modal for:', dateStr);
     setSelectedDate(dateStr);
     setShowDayModal(true);
+  };
+
+  const handlePressStart = (date: Date) => {
+    const timer = setTimeout(() => {
+      handleLongPress(date);
+    }, 500); // 500ms long press
+    setLongPressTimer(timer);
+  };
+
+  const handlePressEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
   };
 
   return (
@@ -182,11 +213,17 @@ const CalendarView: React.FC = () => {
               <button
                 key={date.toISOString()}
                 onClick={() => handleDayClick(date)}
-                onDoubleClick={() => handleDayDoubleClick(date)}
-                title="Click to select, double-click to view day details"
+                onMouseDown={() => handlePressStart(date)}
+                onMouseUp={handlePressEnd}
+                onMouseLeave={handlePressEnd}
+                onTouchStart={() => handlePressStart(date)}
+                onTouchEnd={handlePressEnd}
+                onTouchCancel={handlePressEnd}
+                title="Click to select, long press to view day details"
                 className={cn(
                   'p-3 rounded-lg text-sm font-medium transition-all relative',
                   'hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500',
+                  'select-none', // Prevent text selection during long press
                   isSelected && 'ring-2 ring-blue-500 bg-blue-50',
                   isTodayDate && 'font-bold',
                   !isCurrentMonthDay && 'text-gray-400 opacity-50'
