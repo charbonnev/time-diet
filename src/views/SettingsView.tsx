@@ -4,6 +4,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { pushNotificationManager } from '@/utils/pushNotifications';
 import { Bell, Clock, Download, Check, Server } from 'lucide-react';
+import packageJson from '../../package.json';
 
 const SettingsView: React.FC = () => {
   const { settings, updateSettings } = useAppStore();
@@ -337,17 +338,26 @@ const SettingsView: React.FC = () => {
 
       console.log('🚀 Subscribed to push notifications, sending test...');
 
-      // Send test notification through the push server
-      const success = await pushNotificationManager.sendTestNotification(
-        '🚀 Push Server Test',
-        'This notification came from your Railway server! It works even when the app is closed. 🎉'
-      );
+      // Give user time to close the app
+      alert('🚀 Push server test will be sent in 10 seconds! Close the app now to test background notifications.');
+      
+      setTimeout(async () => {
+        try {
+          // Send test notification through the push server
+          const success = await pushNotificationManager.sendTestNotification(
+            '🚀 Push Server Test',
+            'This notification came from your Railway server! It works even when the app is closed. 🎉'
+          );
 
-      if (success) {
-        alert('🚀 Push server test sent! Check your notifications - this one came from Railway and works even when the app is closed!');
-      } else {
-        alert('❌ Failed to send push server test. Please check the console for errors.');
-      }
+          if (success) {
+            console.log('🚀 Push server test sent successfully!');
+          } else {
+            console.error('❌ Failed to send push server test.');
+          }
+        } catch (delayedError) {
+          console.error('🚀 Delayed push server test error:', delayedError);
+        }
+      }, 10000);
 
     } catch (error) {
       console.error('🚀 Push server test error:', error);
@@ -507,11 +517,17 @@ const SettingsView: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm p-4">
         <h3 className="text-lg font-semibold text-gray-800 mb-2">About</h3>
         <p className="text-sm text-gray-600 mb-2">
-          Time Diet v1.0.0
+          Time Diet v{packageJson.version}
         </p>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 mb-2">
           A structured routine manager with time blocks and ADHD-friendly features.
         </p>
+        <div className="text-xs text-gray-500 space-y-1">
+          <p>✅ PWA with offline support</p>
+          <p>🔔 Push notifications via Railway</p>
+          <p>📱 Mobile-optimized interface</p>
+          <p>🚀 Deployed on Vercel</p>
+        </div>
       </div>
     </div>
   );
