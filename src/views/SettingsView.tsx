@@ -3,7 +3,7 @@ import { useAppStore } from '@/store';
 import { useNotifications } from '@/hooks/useNotifications';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { pushNotificationManager } from '@/utils/pushNotifications';
-import { Bell, Clock, Download, Check, Server } from 'lucide-react';
+import { Bell, Clock, Download, Check, Server, RefreshCw } from 'lucide-react';
 import packageJson from '../../package.json';
 
 const SettingsView: React.FC = () => {
@@ -34,6 +34,33 @@ const SettingsView: React.FC = () => {
 
   const handleSoundProfileChange = async (profile: 'default' | 'silent' | 'vibrate') => {
     await updateSettings({ soundProfile: profile });
+  };
+
+  const handleRefreshSubscription = async () => {
+    console.log('🔄 Refreshing push subscription...');
+    
+    try {
+      // First unsubscribe from any existing subscription
+      const unsubscribed = await pushNotificationManager.unsubscribe();
+      console.log('🔄 Unsubscribed from existing subscription:', unsubscribed);
+      
+      // Wait a moment for the unsubscription to process
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Create a fresh subscription
+      const subscriptionData = await pushNotificationManager.subscribe();
+      
+      if (subscriptionData) {
+        console.log('🔄 Fresh subscription created successfully!');
+        alert('✅ Push subscription refreshed successfully! Try the push server test now.');
+      } else {
+        console.error('🔄 Failed to create fresh subscription');
+        alert('❌ Failed to refresh push subscription. Check console for details.');
+      }
+    } catch (error) {
+      console.error('🔄 Error refreshing subscription:', error);
+      alert('❌ Error refreshing subscription: ' + (error instanceof Error ? error.message : String(error)));
+    }
   };
 
   const handleTestNotification = async () => {
@@ -437,9 +464,16 @@ const SettingsView: React.FC = () => {
                 <Server className="w-4 h-4" />
                 Test Push Server
               </button>
+              <button
+                onClick={handleRefreshSubscription}
+                className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white text-sm rounded-md hover:bg-orange-600 transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Refresh Subscription
+              </button>
             </div>
             <p className="text-xs text-gray-500">
-              "Test Now" = Local notification • "Test in 10s" = Background test • "Test Push Server" = Railway server (works when app is closed)
+              "Test Now" = Local notification • "Test in 10s" = Background test • "Test Push Server" = Railway server (works when app is closed) • "Refresh Subscription" = Fix stale push subscriptions
             </p>
           </div>
         )}
