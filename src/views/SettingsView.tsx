@@ -75,7 +75,7 @@ const SettingsView: React.FC = () => {
             console.log('🔔 Using existing registration');
           } else {
             console.log('🔔 Registering Service Worker...');
-            registration = await navigator.serviceWorker.register('/sw.js');
+            registration = await navigator.serviceWorker.register('/sw-push.js');
             await navigator.serviceWorker.ready;
             console.log('🔔 Service Worker registered');
           }
@@ -220,7 +220,7 @@ const SettingsView: React.FC = () => {
               console.log('⏰ Using existing registration');
             } else {
               console.log('⏰ Registering Service Worker...');
-              registration = await navigator.serviceWorker.register('/sw.js');
+              registration = await navigator.serviceWorker.register('/sw-push.js');
               await navigator.serviceWorker.ready;
               console.log('⏰ Service Worker registered');
             }
@@ -316,6 +316,15 @@ const SettingsView: React.FC = () => {
     console.log('🚀 Testing push server notification...');
     
     try {
+      // Diagnostic information
+      console.log('🔍 DIAGNOSTIC INFO:');
+      console.log('🔍 User Agent:', navigator.userAgent);
+      console.log('🔍 Platform:', navigator.platform);
+      console.log('🔍 Service Worker support:', 'serviceWorker' in navigator);
+      console.log('🔍 Push Manager support:', 'PushManager' in window);
+      console.log('🔍 Notification support:', 'Notification' in window);
+      console.log('🔍 Current permission:', Notification.permission);
+      
       // First, ensure we're subscribed to push notifications
       const permission = await pushNotificationManager.requestPermission();
       if (permission !== 'granted') {
@@ -339,7 +348,7 @@ const SettingsView: React.FC = () => {
       console.log('🚀 Subscribed to push notifications, sending test...');
 
       // Give user time to close the app
-      alert('🚀 Push server test will be sent in 10 seconds! Close the app now to test background notifications.');
+      alert('🚀 Push server test will be sent in 10 seconds! Close the app now to test background notifications. Check browser console for detailed logs.');
       
       setTimeout(async () => {
         try {

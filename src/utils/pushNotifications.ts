@@ -46,20 +46,26 @@ export class PushNotificationManager {
   async subscribe(): Promise<PushSubscriptionData | null> {
     try {
       if (!this.vapidPublicKey) {
+        console.log('🔔 Initializing VAPID key...');
         await this.initialize();
       }
 
+      console.log('🔔 Waiting for service worker...');
       const registration = await navigator.serviceWorker.ready;
+      console.log('🔔 Service worker ready:', registration.scope);
       
       // Check if already subscribed
       let subscription = await registration.pushManager.getSubscription();
+      console.log('🔔 Existing subscription:', subscription ? 'Found' : 'None');
       
       if (!subscription) {
+        console.log('🔔 Creating new push subscription...');
         // Create new subscription
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey!)
         });
+        console.log('🔔 New subscription created');
       }
 
       const subscriptionData: PushSubscriptionData = {
@@ -70,8 +76,11 @@ export class PushNotificationManager {
         }
       };
 
+      console.log('🔔 Sending subscription to server:', PUSH_SERVER_URL);
+      console.log('🔔 Subscription endpoint:', subscriptionData.endpoint);
+
       // Send subscription to server
-      await fetch(`${PUSH_SERVER_URL}/subscribe`, {
+      const response = await fetch(`${PUSH_SERVER_URL}/subscribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -79,10 +88,18 @@ export class PushNotificationManager {
         body: JSON.stringify(subscriptionData)
       });
 
-      console.log('Push subscription successful:', subscriptionData.endpoint);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🔔 Failed to register subscription with server:', errorText);
+        throw new Error(`Server error: ${response.status} ${errorText}`);
+      }
+
+      const serverResult = await response.json();
+      console.log('🔔 Server subscription response:', serverResult);
+      console.log('🔔 Push subscription successful:', subscriptionData.endpoint);
       return subscriptionData;
     } catch (error) {
-      console.error('Failed to subscribe to push notifications:', error);
+      console.error('🔔 Failed to subscribe to push notifications:', error);
       return null;
     }
   }
@@ -128,6 +145,9 @@ export class PushNotificationManager {
 
   async sendTestNotification(title: string = 'Test Notification', body: string = 'This is a test push notification'): Promise<boolean> {
     try {
+      console.log('🚀 Sending push notification to server:', PUSH_SERVER_URL);
+      console.log('🚀 Notification payload:', { title, body });
+      
       const response = await fetch(`${PUSH_SERVER_URL}/send-notification`, {
         method: 'POST',
         headers: {
@@ -136,11 +156,19 @@ export class PushNotificationManager {
         body: JSON.stringify({ title, body })
       });
 
+      console.log('🚀 Server response status:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🚀 Server error response:', errorText);
+        return false;
+      }
+
       const result = await response.json();
-      console.log('Test notification sent:', result);
-      return response.ok;
+      console.log('🚀 Test notification sent successfully:', result);
+      return true;
     } catch (error) {
-      console.error('Failed to send test notification:', error);
+      console.error('🚀 Failed to send test notification:', error);
       return false;
     }
   }
