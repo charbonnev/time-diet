@@ -197,6 +197,70 @@ export class PushNotificationManager {
     }
   }
 
+  async scheduleBulkNotifications(notifications: Array<{
+    id: string;
+    title: string;
+    body: string;
+    scheduledTime: Date;
+    blockId?: string;
+    isEarlyWarning?: boolean;
+  }>): Promise<boolean> {
+    try {
+      console.log('🔔 Scheduling bulk notifications:', notifications.length);
+      
+      const response = await fetch(`${PUSH_SERVER_URL}/schedule-bulk`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          notifications: notifications.map(notif => ({
+            ...notif,
+            scheduledTime: notif.scheduledTime.toISOString()
+          }))
+        })
+      });
+
+      const result = await response.json();
+      console.log('🔔 Bulk notifications scheduled:', result);
+      return response.ok;
+    } catch (error) {
+      console.error('🔔 Failed to schedule bulk notifications:', error);
+      return false;
+    }
+  }
+
+  async clearScheduledNotifications(): Promise<boolean> {
+    try {
+      console.log('🗑️ Clearing all scheduled notifications');
+      
+      const response = await fetch(`${PUSH_SERVER_URL}/clear-scheduled`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+      console.log('🗑️ Scheduled notifications cleared:', result);
+      return response.ok;
+    } catch (error) {
+      console.error('🗑️ Failed to clear scheduled notifications:', error);
+      return false;
+    }
+  }
+
+  async getScheduledNotifications(): Promise<any[]> {
+    try {
+      const response = await fetch(`${PUSH_SERVER_URL}/scheduled`);
+      const result = await response.json();
+      return result.notifications || [];
+    } catch (error) {
+      console.error('Failed to get scheduled notifications:', error);
+      return [];
+    }
+  }
+
   // Utility functions
   private urlBase64ToUint8Array(base64String: string): Uint8Array {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);

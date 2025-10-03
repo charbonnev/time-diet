@@ -1,5 +1,6 @@
 import { TimeBlockInstance, NotificationQueue } from '@/types';
 import { format, addMinutes } from 'date-fns';
+import { pushNotificationManager } from './pushNotifications';
 
 /**
  * Check if notifications are supported in the browser
@@ -30,40 +31,37 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
 }
 
 /**
- * Show a notification
+ * Show a notification using push notification system
  */
 export async function showNotification(title: string, options?: NotificationOptions): Promise<void> {
   if (Notification.permission !== 'granted') {
     return;
   }
 
-  const notificationOptions = {
-    icon: '/pwa-192x192.png',
-    badge: '/pwa-192x192.png',
-    ...options
-  };
-
   try {
-    // Temporarily skip Service Worker and use direct API for debugging
-    console.log('🔔 Using direct Notification API for:', title);
-    console.log('🔔 Notification permission:', Notification.permission);
-    console.log('🔔 Creating notification with options:', notificationOptions);
+    console.log('🔔 Sending immediate push notification:', title);
     
-    const notification = new Notification(title, notificationOptions);
-    console.log('🔔 Direct notification created successfully:', notification);
+    // Use push notification system for immediate notifications
+    const success = await pushNotificationManager.sendTestNotification(
+      title,
+      options?.body || 'Time Diet notification'
+    );
     
-    // Add event handlers for debugging
-    notification.onshow = () => {
-      console.log('🔔 Notification shown successfully');
-    };
-    
-    notification.onerror = (error) => {
-      console.error('🔔 Notification error:', error);
-    };
-    
-    notification.onclick = () => {
-      console.log('🔔 Notification clicked');
-    };
+    if (success) {
+      console.log('🔔 Push notification sent successfully:', title);
+    } else {
+      console.error('🔔 Failed to send push notification, falling back to local');
+      
+      // Fallback to local notification if push fails
+      const notificationOptions = {
+        icon: '/pwa-192x192.png',
+        badge: '/pwa-192x192.png',
+        ...options
+      };
+      
+      const notification = new Notification(title, notificationOptions);
+      console.log('🔔 Local fallback notification created:', notification);
+    }
     
   } catch (error) {
     console.error('🔔 Error showing notification:', error);
@@ -113,7 +111,43 @@ export function scheduleBlockNotifications(
 }
 
 /**
- * Schedule a single notification using setTimeout
+ * Schedule notifications using push notification system
+ */
+export async function scheduleNotificationsPush(notifications: NotificationQueue[]): Promise<boolean> {
+  try {
+    console.log('🔔 Scheduling notifications via push system:', notifications.length);
+    
+    // Clear any existing scheduled notifications on the server
+    await pushNotificationManager.clearScheduledNotifications();
+    
+    // Convert to push notification format
+    const pushNotifications = notifications.map(notif => ({
+      id: notif.id,
+      title: notif.title,
+      body: notif.body,
+      scheduledTime: notif.scheduledTime,
+      blockId: notif.blockId,
+      isEarlyWarning: notif.isEarlyWarning || false
+    }));
+    
+    // Schedule via push server
+    const success = await pushNotificationManager.scheduleBulkNotifications(pushNotifications);
+    
+    if (success) {
+      console.log('🔔 All notifications scheduled successfully via push system');
+    } else {
+      console.error('🔔 Failed to schedule notifications via push system');
+    }
+    
+    return success;
+  } catch (error) {
+    console.error('🔔 Error scheduling push notifications:', error);
+    return false;
+  }
+}
+
+/**
+ * Schedule a single notification using setTimeout (legacy fallback)
  */
 export function scheduleNotification(notification: NotificationQueue): number {
   const delay = notification.scheduledTime.getTime() - Date.now();
@@ -130,7 +164,7 @@ export function scheduleNotification(notification: NotificationQueue): number {
 }
 
 /**
- * Clear all scheduled notifications
+ * Clear all scheduled notifications (legacy)
  */
 export function clearScheduledNotifications(timeoutIds: number[]): void {
   timeoutIds.forEach(id => {
@@ -138,6 +172,19 @@ export function clearScheduledNotifications(timeoutIds: number[]): void {
       clearTimeout(id);
     }
   });
+}
+
+/**
+ * Clear all scheduled push notifications
+ */
+export async function clearScheduledPushNotifications(): Promise<boolean> {
+  try {
+    console.log('🗑️ Clearing all scheduled push notifications');
+    return await pushNotificationManager.clearScheduledNotifications();
+  } catch (error) {
+    console.error('🗑️ Error clearing scheduled push notifications:', error);
+    return false;
+  }
 }
 
 /**
@@ -204,6 +251,7 @@ export function shouldShowLightsOutReminder(): boolean {
  * Show checklist reminder notification
  */
 export function showChecklistReminder(): void {
+  console.log('🔔 Showing checklist reminder via push system');
   showNotification('Daily Checklist', {
     body: 'Time to complete your daily checklist!',
     tag: 'checklist-reminder'
@@ -214,6 +262,7 @@ export function showChecklistReminder(): void {
  * Show lights out reminder notification
  */
 export function showLightsOutReminder(): void {
+  console.log('🔔 Showing lights out reminder via push system');
   showNotification('Lights Out', {
     body: 'Time to wind down for the day. Lights out at 23:30!',
     tag: 'lights-out-reminder'

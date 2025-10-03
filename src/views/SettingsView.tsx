@@ -40,6 +40,10 @@ const SettingsView: React.FC = () => {
     console.log('🔄 Refreshing push subscription...');
     
     try {
+      // First clear any scheduled notifications to avoid orphaned notifications
+      console.log('🔄 Clearing scheduled notifications before refresh...');
+      await pushNotificationManager.clearScheduledNotifications();
+      
       // First unsubscribe from any existing subscription
       const unsubscribed = await pushNotificationManager.unsubscribe();
       console.log('🔄 Unsubscribed from existing subscription:', unsubscribed);
@@ -52,7 +56,27 @@ const SettingsView: React.FC = () => {
       
       if (subscriptionData) {
         console.log('🔄 Fresh subscription created successfully!');
-        alert('✅ Push subscription refreshed successfully! Try the push server test now.');
+        
+        // Trigger a re-schedule of notifications with the new subscription
+        console.log('🔄 Triggering notification rescheduling...');
+        const { currentSchedule, settings } = useAppStore.getState();
+        if (settings.notificationsEnabled && currentSchedule) {
+          // Import the notification functions
+          const { scheduleBlockNotifications, scheduleNotificationsPush } = await import('@/utils/notifications');
+          
+          // Generate and schedule notifications with the new subscription
+          const notifications = scheduleBlockNotifications(
+            currentSchedule.blocks,
+            settings.earlyWarningMinutes
+          );
+          
+          if (notifications.length > 0) {
+            const success = await scheduleNotificationsPush(notifications);
+            console.log('🔄 Rescheduled notifications with new subscription:', success);
+          }
+        }
+        
+        alert('✅ Push subscription refreshed successfully! All scheduled notifications have been updated with the new subscription.');
       } else {
         console.error('🔄 Failed to create fresh subscription');
         alert('❌ Failed to refresh push subscription. Check console for details.');
@@ -401,6 +425,74 @@ const SettingsView: React.FC = () => {
     }
   };
 
+  const handleBulkSchedulingTest = async () => {
+    console.log('📅 Testing bulk scheduling system...');
+    
+    try {
+      // Ensure we're subscribed to push notifications
+      const permission = await pushNotificationManager.requestPermission();
+      if (permission !== 'granted') {
+        alert('❌ Push notification permission denied. Please allow notifications to test bulk scheduling.');
+        return;
+      }
+
+      const initialized = await pushNotificationManager.initialize();
+      if (!initialized) {
+        alert('❌ Failed to initialize push notifications.');
+        return;
+      }
+
+      const subscription = await pushNotificationManager.subscribe();
+      if (!subscription) {
+        alert('❌ Failed to subscribe to push notifications.');
+        return;
+      }
+
+      // Create test notifications scheduled for the next few minutes
+      const now = new Date();
+      const testNotifications = [
+        {
+          id: 'test-1',
+          title: '📅 Bulk Test 1',
+          body: 'First test notification (30 seconds)',
+          scheduledTime: new Date(now.getTime() + 30000), // 30 seconds
+          blockId: 'test-block-1'
+        },
+        {
+          id: 'test-2',
+          title: '📅 Bulk Test 2',
+          body: 'Second test notification (60 seconds)',
+          scheduledTime: new Date(now.getTime() + 60000), // 60 seconds
+          blockId: 'test-block-2'
+        },
+        {
+          id: 'test-3',
+          title: '📅 Early Warning Test',
+          body: 'Early warning test (90 seconds)',
+          scheduledTime: new Date(now.getTime() + 90000), // 90 seconds
+          blockId: 'test-block-3',
+          isEarlyWarning: true
+        }
+      ];
+
+      console.log('📅 Scheduling test notifications:', testNotifications);
+      
+      const success = await pushNotificationManager.scheduleBulkNotifications(testNotifications);
+      
+      if (success) {
+        alert('✅ Bulk scheduling test successful! You should receive 3 notifications in the next 90 seconds. Check console and server logs for details.');
+        console.log('📅 Bulk scheduling test completed successfully');
+      } else {
+        alert('❌ Bulk scheduling test failed. Check console for details.');
+        console.error('📅 Bulk scheduling test failed');
+      }
+
+    } catch (error) {
+      console.error('📅 Bulk scheduling test error:', error);
+      alert('❌ Bulk scheduling test failed: ' + (error instanceof Error ? error.message : String(error)));
+    }
+  };
+
   const handleInstallClick = async () => {
     const success = await installApp();
     if (!success && isInstallable) {
@@ -471,9 +563,16 @@ const SettingsView: React.FC = () => {
                 <RefreshCw className="w-4 h-4" />
                 Refresh Subscription
               </button>
+              <button
+                onClick={handleBulkSchedulingTest}
+                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-colors"
+              >
+                <Clock className="w-4 h-4" />
+                Test Bulk Scheduling
+              </button>
             </div>
             <p className="text-xs text-gray-500">
-              "Test Now" = Local notification • "Test in 10s" = Background test • "Test Push Server" = Railway server (works when app is closed) • "Refresh Subscription" = Fix stale push subscriptions
+              "Test Now" = Local notification • "Test in 10s" = Background test • "Test Push Server" = Railway server (works when app is closed) • "Refresh Subscription" = Fix stale push subscriptions • "Test Bulk Scheduling" = Test the new system that schedules multiple notifications
             </p>
           </div>
         )}
