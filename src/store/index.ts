@@ -76,6 +76,8 @@ interface AppState {
   loadScheduleForDate: (date: string) => Promise<void>;
   updateSchedule: (schedule: DaySchedule) => Promise<void>;
   updateBlockStatus: (blockId: string, status: 'completed' | 'skipped') => Promise<void>;
+  updateBlockTitle: (blockId: string, newTitle: string) => Promise<void>;
+  resetBlockStatus: (blockId: string) => Promise<void>;
   snoozeBlock: (blockId: string, minutes: number) => Promise<void>;
   
   // Checklists
@@ -324,6 +326,48 @@ export const useAppStore = create<AppState>()(
             }
           } catch (error) {
             set({ error: error instanceof Error ? error.message : 'Failed to update block status' });
+          }
+        },
+
+        updateBlockTitle: async (blockId: string, newTitle: string) => {
+          try {
+            const { currentSchedule } = get();
+            if (!currentSchedule) return;
+
+            const updatedBlocks = currentSchedule.blocks.map(block =>
+              block.id === blockId
+                ? { ...block, title: newTitle }
+                : block
+            );
+
+            const updatedSchedule = { ...currentSchedule, blocks: updatedBlocks };
+            await get().updateSchedule(updatedSchedule);
+          } catch (error) {
+            set({ error: error instanceof Error ? error.message : 'Failed to update block title' });
+          }
+        },
+
+        resetBlockStatus: async (blockId: string) => {
+          try {
+            const { currentSchedule } = get();
+            if (!currentSchedule) return;
+
+            const updatedBlocks = currentSchedule.blocks.map(block =>
+              block.id === blockId
+                ? { ...block, status: 'planned' as const, completedAt: undefined }
+                : block
+            );
+
+            const updatedSchedule = { ...currentSchedule, blocks: updatedBlocks };
+            await get().updateSchedule(updatedSchedule);
+
+            // Auto-update checklist if it's a focus block
+            const updatedBlock = updatedBlocks.find(b => b.id === blockId);
+            if (updatedBlock && updatedBlock.title.includes('Focus Block')) {
+              await get().loadChecklistForDate(currentSchedule.date);
+            }
+          } catch (error) {
+            set({ error: error instanceof Error ? error.message : 'Failed to reset block status' });
           }
         },
 

@@ -166,35 +166,35 @@ const CalendarView: React.FC = () => {
     <div className="p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900 flex items-center">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
           <CalendarIcon className="w-5 h-5 mr-2" />
           Calendar
         </h2>
         <div className="flex items-center space-x-4">
           <button
             onClick={previousMonth}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
           </button>
-          <h3 className="text-lg font-semibold text-gray-800 min-w-[140px] text-center">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 min-w-[140px] text-center">
             {format(currentMonth, 'MMMM yyyy')}
           </h3>
           <button
             onClick={nextMonth}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-5 h-5 text-gray-700 dark:text-gray-300" />
           </button>
         </div>
       </div>
 
       {/* Calendar Grid */}
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
         {/* Day headers */}
         <div className="grid grid-cols-7 gap-1 mb-2">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="p-2 text-center text-sm font-medium text-gray-500">
+            <div key={day} className="p-2 text-center text-sm font-medium text-gray-500 dark:text-gray-400">
               {day}
             </div>
           ))}
@@ -222,17 +222,17 @@ const CalendarView: React.FC = () => {
                 title="Click to select, long press to view day details"
                 className={cn(
                   'p-3 rounded-lg text-sm font-medium transition-all relative',
-                  'hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500',
+                  'hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500',
                   'select-none', // Prevent text selection during long press
-                  isSelected && 'ring-2 ring-blue-500 bg-blue-50',
+                  isSelected && 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30',
                   isTodayDate && 'font-bold',
-                  !isCurrentMonthDay && 'text-gray-400 opacity-50'
+                  !isCurrentMonthDay && 'text-gray-400 dark:text-gray-600 opacity-50'
                 )}
               >
                 <div className="flex flex-col items-center space-y-1">
                   <span className={cn(
-                    'text-gray-900',
-                    isTodayDate && 'text-blue-600'
+                    'text-gray-900 dark:text-gray-100',
+                    isTodayDate && 'text-blue-600 dark:text-blue-400'
                   )}>
                     {format(date, 'd')}
                   </span>
@@ -248,8 +248,8 @@ const CalendarView: React.FC = () => {
       </div>
 
       {/* Legend */}
-      <div className="bg-white rounded-lg shadow-sm p-4">
-        <h4 className="text-sm font-semibold text-gray-800 mb-3">Success Rate Legend</h4>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+        <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">Success Rate Legend</h4>
         <div className="grid grid-cols-2 gap-2 text-xs">
           {[
             { status: 'excellent', label: 'Excellent (80%+)' },
@@ -261,7 +261,7 @@ const CalendarView: React.FC = () => {
           ].map(({ status, label }) => (
             <div key={status} className="flex items-center space-x-2">
               <div className={cn('w-3 h-3 rounded-full', getStatusColor(status))} />
-              <span className="text-gray-600">{label}</span>
+              <span className="text-gray-600 dark:text-gray-400">{label}</span>
             </div>
           ))}
         </div>

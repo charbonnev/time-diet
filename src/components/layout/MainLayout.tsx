@@ -18,11 +18,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-md mx-auto px-4 py-3">
-          <h1 className="text-2xl font-bold text-gray-900">Time Diet</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Time Diet</h1>
         </div>
       </header>
 
@@ -32,7 +32,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-10">
         <div className="max-w-md mx-auto px-4">
           <div className="flex justify-around py-2">
             {navItems.map((item) => (
@@ -42,7 +42,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 className={({ isActive }) =>
                   cn(
                     "flex flex-col items-center py-2 px-3 rounded-lg transition-colors duration-200",
-                    isActive ? "text-blue-600 bg-blue-50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                    isActive 
+                      ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30" 
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   )
                 }
               >

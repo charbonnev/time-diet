@@ -95,7 +95,8 @@ export function createDefaultSettings(): Settings {
     soundProfile: 'default',
     categoryColors: DEFAULT_CATEGORY_COLORS,
     computeCategoryPoints: true,
-    correctionMode: false
+    correctionMode: false,
+    darkMode: false
   };
 }
 

@@ -4,6 +4,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { Loader2 } from 'lucide-react';
 import './App.css';
 import MainLayout from '@/components/layout/MainLayout';
+import { ThemeProvider } from '@/components/ThemeProvider';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import TodayView from '@/views/TodayView';
@@ -27,10 +28,10 @@ function App() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">Loading Time Diet...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading Time Diet...</p>
         </div>
       </div>
     );
@@ -38,11 +39,11 @@ function App() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <h2 className="text-red-800 font-semibold mb-2">Error</h2>
-            <p className="text-red-600 text-sm">{error}</p>
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <h2 className="text-red-800 dark:text-red-400 font-semibold mb-2">Error</h2>
+            <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
           </div>
         </div>
       </div>
@@ -50,16 +51,18 @@ function App() {
   }
 
   return (
-    <Router>
-      <MainLayout>
-        <Routes>
-          <Route path="/" element={<TodayView />} />
-          <Route path="/calendar" element={<CalendarView />} />
-          <Route path="/checklist" element={<ChecklistView />} />
-          <Route path="/settings" element={<SettingsView />} />
-        </Routes>
-      </MainLayout>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <MainLayout>
+          <Routes>
+            <Route path="/" element={<TodayView />} />
+            <Route path="/calendar" element={<CalendarView />} />
+            <Route path="/checklist" element={<ChecklistView />} />
+            <Route path="/settings" element={<SettingsView />} />
+          </Routes>
+        </MainLayout>
+      </Router>
+    </ThemeProvider>
   );
 }
 

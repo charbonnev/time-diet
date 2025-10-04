@@ -2,14 +2,16 @@ import React from 'react';
 import { useAppStore } from '@/store';
 import { useNotifications } from '@/hooks/useNotifications';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { useTheme } from '@/components/ThemeProvider';
 import { pushNotificationManager } from '@/utils/pushNotifications';
-import { Bell, Clock, Download, Check, Server, RefreshCw } from 'lucide-react';
+import { Bell, Clock, Download, Check, Server, RefreshCw, Moon, Sun } from 'lucide-react';
 import packageJson from '../../package.json';
 
 const SettingsView: React.FC = () => {
   const { settings, updateSettings } = useAppStore();
   const { requestPermission } = useNotifications();
   const { isInstallable, isInstalled, installApp } = usePWAInstall();
+  const { theme, toggleTheme } = useTheme();
 
   const handleNotificationToggle = async () => {
     // Optimistic update for immediate UI feedback
@@ -502,11 +504,39 @@ const SettingsView: React.FC = () => {
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">Settings</h2>
+      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">Settings</h2>
+      
+      {/* Appearance Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
+          {theme === 'dark' ? <Moon className="w-5 h-5 mr-2" /> : <Sun className="w-5 h-5 mr-2" />}
+          Appearance
+        </h3>
+        
+        {/* Dark Mode Toggle */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium text-gray-700 dark:text-gray-300">Dark Mode</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Switch between light and dark themes</p>
+          </div>
+          <button
+            onClick={toggleTheme}
+            className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+              theme === 'dark' ? 'bg-blue-600' : 'bg-gray-200'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+      </div>
       
       {/* Notifications Section */}
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
           <Bell className="w-5 h-5 mr-2" />
           Notifications
         </h3>
@@ -514,13 +544,13 @@ const SettingsView: React.FC = () => {
         {/* Enable/Disable Notifications */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="font-medium text-gray-700">Enable Notifications</p>
-            <p className="text-sm text-gray-500">Get notified when time blocks start</p>
+            <p className="font-medium text-gray-700 dark:text-gray-300">Enable Notifications</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Get notified when time blocks start</p>
           </div>
           <button
             onClick={handleNotificationToggle}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings.notificationsEnabled ? 'bg-blue-600' : 'bg-gray-200'
+            className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+              settings.notificationsEnabled ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
             }`}
           >
             <span
@@ -571,7 +601,7 @@ const SettingsView: React.FC = () => {
                 Test Bulk Scheduling
               </button>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               "Test Now" = Local notification • "Test in 10s" = Background test • "Test Push Server" = Railway server (works when app is closed) • "Refresh Subscription" = Fix stale push subscriptions • "Test Bulk Scheduling" = Test the new system that schedules multiple notifications
             </p>
           </div>
@@ -580,7 +610,7 @@ const SettingsView: React.FC = () => {
         {/* Early Warning */}
         {settings.notificationsEnabled && (
           <div className="mb-4">
-            <p className="font-medium text-gray-700 mb-2 flex items-center">
+            <p className="font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
               <Clock className="w-4 h-4 mr-2" />
               Early Warning
             </p>
@@ -591,8 +621,8 @@ const SettingsView: React.FC = () => {
                   onClick={() => handleEarlyWarningChange(minutes)}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     settings.earlyWarningMinutes === minutes
-                      ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                      : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-300 dark:border-blue-700'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                 >
                   {minutes === 0 ? 'None' : `${minutes} min`}
@@ -605,7 +635,7 @@ const SettingsView: React.FC = () => {
         {/* Sound Profile */}
         {settings.notificationsEnabled && (
           <div className="mb-4">
-            <p className="font-medium text-gray-700 mb-2">Sound Profile</p>
+            <p className="font-medium text-gray-700 dark:text-gray-300 mb-2">Sound Profile</p>
             <div className="flex space-x-2">
               {[
                 { value: 'default', label: 'Default' },
@@ -617,8 +647,8 @@ const SettingsView: React.FC = () => {
                   onClick={() => handleSoundProfileChange(profile.value as any)}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     settings.soundProfile === profile.value
-                      ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                      : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-300 dark:border-blue-700'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                 >
                   {profile.label}
@@ -631,13 +661,13 @@ const SettingsView: React.FC = () => {
         {/* Correction Mode */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-medium text-gray-700">Correction Mode</p>
-            <p className="text-sm text-gray-500">Allow browsing and editing past dates in Today/Checklist tabs</p>
+            <p className="font-medium text-gray-700 dark:text-gray-300">Correction Mode</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Allow browsing and editing past dates in Today/Checklist tabs</p>
           </div>
           <button
             onClick={() => updateSettings({ correctionMode: !settings.correctionMode })}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              settings.correctionMode ? 'bg-blue-600' : 'bg-gray-200'
+            className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+              settings.correctionMode ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
             }`}
           >
             <span
@@ -650,13 +680,13 @@ const SettingsView: React.FC = () => {
       </div>
 
       {/* PWA Installation */}
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">Install App</h3>
-        <p className="text-sm text-gray-600 mb-3">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Install App</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
           Install Time Diet as a PWA for the best experience. You can access it from your home screen and use it offline.
         </p>
         {isInstalled ? (
-          <div className="flex items-center text-green-600">
+          <div className="flex items-center text-green-600 dark:text-green-400">
             <Check className="w-4 h-4 mr-2" />
             <span className="text-sm font-medium">App is installed</span>
           </div>
@@ -669,22 +699,22 @@ const SettingsView: React.FC = () => {
             Install App
           </button>
         ) : (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Installation not available. Try opening this app in Chrome or Edge.
           </p>
         )}
       </div>
 
       {/* About */}
-      <div className="bg-white rounded-lg shadow-sm p-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">About</h3>
-        <p className="text-sm text-gray-600 mb-2">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">About</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
           Time Diet v{packageJson.version}
         </p>
-        <p className="text-sm text-gray-600 mb-2">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
           A structured routine manager with time blocks and ADHD-friendly features.
         </p>
-        <div className="text-xs text-gray-500 space-y-1">
+        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
           <p>✅ PWA with offline support</p>
           <p>🔔 Push notifications via Railway</p>
           <p>📱 Mobile-optimized interface</p>

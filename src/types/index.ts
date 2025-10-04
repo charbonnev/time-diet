@@ -65,6 +65,7 @@ export interface Settings {
   categoryColors: Record<string, string>;
   computeCategoryPoints: boolean;
   correctionMode: boolean; // Allows browsing/editing past dates
+  darkMode: boolean; // Dark mode toggle
 }
 
 export interface ModeState {

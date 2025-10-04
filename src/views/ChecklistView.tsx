@@ -129,20 +129,20 @@ const ChecklistView: React.FC = () => {
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={handlePreviousDay}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
         </button>
         <div className="text-center">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center justify-center">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center justify-center">
             <Target className="w-5 h-5 mr-2" />
             Daily Checklist
           </h2>
-          <p className="text-sm text-gray-600">{format(parseISO(viewDate), 'PPP')}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{format(parseISO(viewDate), 'EEEE, MMMM do, yyyy')}</p>
           {!isToday && (
             <button
               onClick={handleToday}
-              className="text-sm text-blue-600 hover:text-blue-700 mt-1"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mt-1"
             >
               Back to Today
             </button>
@@ -150,9 +150,9 @@ const ChecklistView: React.FC = () => {
         </div>
         <button
           onClick={handleNextDay}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-5 h-5 text-gray-700 dark:text-gray-300" />
         </button>
       </div>
     );
@@ -162,7 +162,7 @@ const ChecklistView: React.FC = () => {
     return (
       <div className="p-4">
         {renderNavigation()}
-        <div className="text-center text-gray-500">
+        <div className="text-center text-gray-500 dark:text-gray-400">
           <p>No schedule available for this day. Apply the default template first!</p>
         </div>
       </div>
@@ -230,50 +230,53 @@ const ChecklistView: React.FC = () => {
     <div className="p-4">
       {renderNavigation()}
       {!settings.correctionMode && (
-        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-          <Target className="w-5 h-5 mr-2" />
-          Daily Checklist ({format(parseISO(today), 'PPP')})
-        </h2>
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
+            <Target className="w-5 h-5 mr-2" />
+            Daily Checklist
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{format(parseISO(today), 'EEEE, MMMM do, yyyy')}</p>
+        </div>
       )}
 
       {/* Progress Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {/* Success Rate */}
-        <div className="bg-white rounded-lg shadow-sm p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-gray-700">Success Rate</h3>
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Success Rate</h3>
             <TrendingUp className="w-4 h-4 text-green-500" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">{successRate}%</div>
-          <div className="text-sm text-gray-500">{completedItems} of {totalItems} completed</div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{successRate}%</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">{completedItems} of {totalItems} completed</div>
         </div>
 
         {/* Points Earned */}
-        <div className="bg-white rounded-lg shadow-sm p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-gray-700">Points Earned</h3>
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Points Earned</h3>
             <Target className="w-4 h-4 text-blue-500" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">{Math.floor((successRate / 100) * 96)}</div>
-          <div className="text-sm text-gray-500">out of 96 points</div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{Math.floor((successRate / 100) * 96)}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">out of 96 points</div>
         </div>
 
         {/* Date */}
-        <div className="bg-white rounded-lg shadow-sm p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-gray-700">Date</h3>
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Date</h3>
             <Calendar className="w-4 h-4 text-purple-500" />
           </div>
-          <div className="text-lg font-bold text-gray-900">{format(parseISO(viewDate), 'MMM dd')}</div>
-          <div className="text-sm text-gray-500">{format(parseISO(viewDate), 'EEEE')}</div>
+          <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{format(parseISO(viewDate), 'MMM dd')}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">{format(parseISO(viewDate), 'EEEE')}</div>
         </div>
       </div>
 
       {/* Progress Visualization */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Pie Chart */}
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Completion Overview</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Completion Overview</h3>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -296,8 +299,8 @@ const ChecklistView: React.FC = () => {
         </div>
 
         {/* 7-Day Streak */}
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">7-Day Progress</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">7-Day Progress</h3>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={streakData}>
@@ -313,8 +316,8 @@ const ChecklistView: React.FC = () => {
       </div>
 
       {/* Category Breakdown */}
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Category Breakdown</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Category Breakdown</h3>
         <div className="space-y-3">
           {categoryBreakdown.map(category => (
             <div key={category.name} className="flex items-center justify-between">
@@ -323,13 +326,13 @@ const ChecklistView: React.FC = () => {
                   className="w-4 h-4 rounded-full"
                   style={{ backgroundColor: category.color }}
                 />
-                <span className="font-medium text-gray-700">{category.name}</span>
+                <span className="font-medium text-gray-700 dark:text-gray-300">{category.name}</span>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   {category.completed}/{category.total}
                 </span>
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   {category.percentage}%
                 </span>
               </div>
@@ -339,15 +342,15 @@ const ChecklistView: React.FC = () => {
       </div>
 
       {/* Checklist Items */}
-      <div className="bg-white rounded-lg shadow-sm p-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Today's Tasks</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Today's Tasks</h3>
         <div className="space-y-3">
           {checklistItems.map((item, index) => (
             <div
               key={index}
               className={cn(
                 'flex items-center space-x-3 p-3 rounded-lg border transition-colors',
-                item.completed ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'
+                item.completed ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
               )}
               >
                 <button
@@ -367,11 +370,11 @@ const ChecklistView: React.FC = () => {
                 <div className="flex-1">
                   <h4 className={cn(
                     'font-medium',
-                    item.completed ? 'text-green-800 line-through' : 'text-gray-800'
+                    item.completed ? 'text-green-800 dark:text-green-400 line-through' : 'text-gray-800 dark:text-gray-200'
                   )}>
                     {item.name}
                   </h4>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     {item.clickable ? 'Click to toggle' : 'Auto-updated from time blocks'}
                   </p>
                 </div>

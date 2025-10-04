@@ -1,6 +1,6 @@
 # Time Diet - Structured Routine Manager
 
-**Version 1.2.1** | **Live at**: [time-diet.vercel.app](https://time-diet.vercel.app)
+**Version 1.2.2** | **Live at**: [time-diet.vercel.app](https://time-diet.vercel.app)
 
 A comprehensive Progressive Web App (PWA) for managing time blocks, tracking daily routines, and building productive habits with ADHD-friendly features.
 
