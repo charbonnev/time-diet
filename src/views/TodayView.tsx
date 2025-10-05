@@ -5,7 +5,6 @@ import { TimeBlockInstance } from '@/types';
 import { cn } from '@/lib/utils';
 import { CheckCircle, XCircle, Clock, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getCurrentDateString } from '@/utils/time';
-import Timeline from '@/components/Timeline';
 
 const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string; categoryName: string }> = ({ block, categoryColor, categoryName }) => {
   const { updateBlockStatus, updateBlockTitle, resetBlockStatus, snoozeBlock } = useAppStore();
@@ -69,12 +68,12 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string;
       )}
       style={{ borderLeftColor: categoryColor }}
     >
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex justify-between items-start gap-3 mb-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {getStatusIcon()}
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{block.title}</h3>
         </div>
-        <span className="text-sm text-gray-500 dark:text-gray-400">
+        <span className="text-sm text-gray-500 dark:text-gray-400 flex-shrink-0 whitespace-nowrap">
           {format(block.start, 'HH:mm')} - {format(block.end, 'HH:mm')}
         </span>
       </div>
