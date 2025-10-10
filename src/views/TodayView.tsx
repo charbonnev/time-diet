@@ -262,13 +262,8 @@ const TodayView: React.FC = () => {
     };
   };
 
-  const handleApplyDefaultTemplate = async () => {
-    const defaultTemplate = templates.find(t => t.isDefault);
-    if (defaultTemplate) {
-      await applyTemplateToDate(defaultTemplate.id, viewDate);
-    } else {
-      console.error('Default template not found');
-    }
+  const handleApplyTemplate = async (templateId: string) => {
+    await applyTemplateToDate(templateId, viewDate);
   };
 
   const handlePreviousDay = () => {
@@ -319,14 +314,35 @@ const TodayView: React.FC = () => {
             </button>
           </div>
         )}
-        <div className="text-center text-gray-500 dark:text-gray-400">
-          <p className="mb-4">No schedule planned for this day. Start by creating a template!</p>
-          <button 
-            onClick={handleApplyDefaultTemplate}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition-colors"
-          >
-            Apply Default Template
-          </button>
+        <div className="text-center">
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
+            No schedule planned for this day. Choose a template to get started:
+          </p>
+          
+          <div className="max-w-md mx-auto space-y-3">
+            {templates.map(template => (
+              <button
+                key={template.id}
+                onClick={() => handleApplyTemplate(template.id)}
+                className="w-full flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-md transition-all"
+              >
+                <div className="text-left">
+                  <p className="font-semibold text-gray-800 dark:text-gray-200">
+                    {template.name}
+                    {template.isDefault && (
+                      <span className="ml-2 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded">
+                        Default
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {template.blocks.length} time blocks
+                  </p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     );

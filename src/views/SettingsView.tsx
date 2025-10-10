@@ -4,14 +4,25 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { useTheme } from '@/components/ThemeProvider';
 import { pushNotificationManager } from '@/utils/pushNotifications';
-import { Bell, Clock, Download, Check, Server, RefreshCw, Moon, Sun } from 'lucide-react';
+import { Bell, Clock, Download, Check, Server, RefreshCw, Moon, Sun, FileText, Plus, Edit2, Trash2 } from 'lucide-react';
 import packageJson from '../../package.json';
+import TemplateEditor from '@/components/TemplateEditor';
 
 const SettingsView: React.FC = () => {
-  const { settings, updateSettings } = useAppStore();
+  const { settings, updateSettings, templates, removeTemplate, categories, addTemplate, updateTemplate } = useAppStore();
   const { requestPermission } = useNotifications();
   const { isInstallable, isInstalled, installApp } = usePWAInstall();
   const { theme, toggleTheme } = useTheme();
+  const [showTemplateEditor, setShowTemplateEditor] = React.useState(false);
+  const [editingTemplateId, setEditingTemplateId] = React.useState<string | null>(null);
+
+  const handleSaveTemplate = async (template: any) => {
+    if (editingTemplateId) {
+      await updateTemplate(template);
+    } else {
+      await addTemplate(template);
+    }
+  };
 
   const handleNotificationToggle = async () => {
     // Optimistic update for immediate UI feedback
@@ -679,6 +690,81 @@ const SettingsView: React.FC = () => {
         </div>
       </div>
 
+      {/* Templates Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
+          <FileText className="w-5 h-5 mr-2" />
+          Templates
+        </h3>
+        
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Manage your schedule templates. Create custom templates or edit existing ones.
+        </p>
+        
+        {/* Template List */}
+        <div className="space-y-2 mb-4">
+          {templates.map(template => (
+            <div 
+              key={template.id}
+              className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700"
+            >
+              <div className="flex-1">
+                <p className="font-medium text-gray-800 dark:text-gray-200">
+                  {template.name}
+                  {template.isDefault && (
+                    <span className="ml-2 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded">
+                      Default
+                    </span>
+                  )}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {template.blocks.length} time blocks
+                </p>
+              </div>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setEditingTemplateId(template.id);
+                    setShowTemplateEditor(true);
+                  }}
+                  className="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  Edit
+                </button>
+                
+                {!template.isDefault && (
+                  <button
+                    onClick={async () => {
+                      if (confirm(`Delete template "${template.name}"?`)) {
+                        await removeTemplate(template.id);
+                      }
+                    }}
+                    className="flex items-center gap-1 px-3 py-1 bg-red-500 text-white text-sm rounded-md hover:bg-red-600 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Create New Template Button */}
+        <button
+          onClick={() => {
+            setEditingTemplateId(null);
+            setShowTemplateEditor(true);
+          }}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          Create New Template
+        </button>
+      </div>
+
       {/* PWA Installation */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Install App</h3>
@@ -721,6 +807,19 @@ const SettingsView: React.FC = () => {
           <p>🚀 Deployed on Vercel</p>
         </div>
       </div>
+
+      {/* Template Editor Modal */}
+      {showTemplateEditor && (
+        <TemplateEditor
+          template={editingTemplateId ? templates.find(t => t.id === editingTemplateId) || null : null}
+          categories={categories}
+          onSave={handleSaveTemplate}
+          onClose={() => {
+            setShowTemplateEditor(false);
+            setEditingTemplateId(null);
+          }}
+        />
+      )}
     </div>
   );
 };
