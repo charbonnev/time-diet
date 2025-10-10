@@ -1,0 +1,72 @@
+You got it. Here’s a one-day weekday blueprint for the 14-day challenge—tight, specific, and doable. It assumes wake 07:30 / lights out 23:30, no YouTube or videogames Mon–Thu, and 1 point = 10 minutes (8h sleep → 96 points while awake). Repeat this skeleton each weekday.
+Your weekday, hour by hour
+Night-before (5–10 min, Buffer)
+	• Put phone to charge outside the bedroom; alarm clock on.
+	• Write tomorrow’s 3 top tasks for Focus Blocks 1–2.
+	• Confirm blockers are on (YouTube + games fully blocked on weekdays).
+	• Place Leisure Basket (book, puzzle, sketch pad, resistance band) by desk.
+07:30 — Wake
+	• 07:30–07:40 (Exercise, 1 pt): sunlight walk outside.
+	• 07:40–08:00 (Meals/Hygiene, 2 pts): bathroom, water, quick tidy.
+	• 08:00–08:30 (Meals/Hygiene, 3 pts): breakfast with protein + carbs.
+	• 08:30–08:45 (Admin, 2 pts): open notebook, confirm day plan, “Parking Lot” page ready.
+		○ If you use Ritalin: take as prescribed; aim Focus Block 1 to start ~30–60 min after dose (talk to your prescriber for timing; this is not medical advice).
+Morning work
+	• 08:45–09:35 (Deep Work, 5 pts): Focus Block 1 (50 min). Commit script: “For 50 minutes I do only X.”
+	• 09:35–09:45 (Leisure, 1 pt): micro break—stretch or step outside.
+	• 09:45–10:35 (Deep Work, 5 pts): Focus Block 2.
+	• 10:35–10:50 (Exercise, 2 pts): mobility/walk (hips/hamstrings/upper back).
+	• 10:50–11:10 (Admin, 2 pts): email triage (only today’s must-dos).
+	• 11:10–11:40 (Admin, 3 pts): messages/quick chores.
+	• 11:40–12:00 (Leisure, 2 pts): book/Kindle (offline) or puzzle.
+Midday
+	• 12:00–12:40 (Meals/Hygiene, 4 pts): lunch; no scrolling.
+	• 12:40–13:00 (Leisure, 2 pts): quiet rest / eyes-closed music (not in bed).
+Afternoon work
+	• 13:00–13:50 (Deep Work, 5 pts): Focus Block 3.
+	• 13:50–14:00 (Leisure, 1 pt): micro break.
+	• 14:00–14:50 (Deep Work, 5 pts): Focus Block 4.
+	• 14:50–15:10 (Exercise, 2 pts): walk reset + water (common med/energy trough here).
+	• 15:10–16:00 (Errands/Chores, 5 pts): dishes, groceries, laundry, life admin.
+Late afternoon / early evening
+	• 16:00–16:50 (Buffer, 5 pts): overflow work or creative tinkering (no YouTube).
+	• 16:50–17:10 (Exercise, 1 pt): strength snack (pushups/plank/rows).
+	• 17:10–17:30 (Meals/Hygiene, 2 pts): quick shower.
+	• 17:30–18:10 (Meals/Hygiene, 4 pts): dinner, then quick kitchen reset.
+Evening (no YT/games on weekdays)
+	• 18:10–18:30 (Leisure, 2 pts): call/voice note a friend or sit on balcony.
+	• 18:30–19:10 (Leisure, 4 pts): hobby sprint (sketch, music, puzzle).
+	• 19:10–19:40 (Admin, 3 pts): light messages/DMs, pay a bill, reply to one email.
+	• 19:40–20:10 (Errands, 3 pts): 30-min tidy / prep trash / quick mop.
+	• 20:10–21:00 (Buffer, 5 pts): free choice (reading, analog project, or extra focus).
+	• 21:00–21:20 (Admin, 2 pts): Plan tomorrow: top 3 tasks, check blockers.
+	• 21:20–22:00 (Buffer, 4 pts): wind-down stretch/breathing; dim lights.
+	• 22:00–22:20 (Meals/Hygiene, 2 pts): teeth/face, lay out clothes.
+	• 22:20–23:30 (Buffer, 7 pts): paper book/Kindle (audiobook ok), low light.
+23:30 — Lights out (Sleep tracked in hours, not points)
+
+Point ledger for this day (8h sleep → 96 pts)
+	• Deep Work: 20 pts (4 × 50-min blocks)
+	• Admin: 12 pts
+	• Meals + Hygiene: 17 pts
+	• Exercise / Walks: 6 pts
+	• Leisure (non-YT/games): 12 pts (≈2h)
+	• Errands/Chores: 8 pts
+	• Buffer: 21 pts
+Total: 96 pts
+	Tip: put these category caps at the top of your notebook each morning. Start a 10-min timer whenever you begin something; tick down points as timers end. When a category hits zero, it’s closed unless you consciously borrow from Buffer.
+
+Guardrails that make this work
+	• Environment beats willpower: Cold Turkey / Freedom block YouTube + games Mon–Thu. Phone stays out of bedroom.
+	• Parking Lot pad: when a random idea hits during focus, write it and continue.
+	• Urge protocol (2 min): write the urge → add to Weekend Queue list → do a 10-min substitute (walk/mobility/puzzle) → start a fresh 25–50-min block.
+	• Energy dips: predict your trough; schedule a 10–20-min walk + water + light task there.
+	• Sleep anchors: wake at 07:30 daily for all 14 days; lights out 23:30.
+
+End-of-day 60-second check
+	• Wake 07:30? ✅/❌
+	• 4 focus blocks? 0/1/2/3/4
+	• No weekday YT/games? ✅/❌
+	• Lights out 23:30? ✅/❌
+Hit 3+ checkmarks → the day counts. Aim for 9/14.
+If you want, I can also generate a printable one-page checklist with the timeline and point boxes, or a Google-Sheet-style tracker you can copy.

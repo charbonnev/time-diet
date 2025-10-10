@@ -6,6 +6,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 import { cn } from '@/lib/utils';
 import { Checklist } from '@/types';
 import { getCurrentDateString } from '@/utils/time';
+import { calculateCategoryPoints, calculateTotalCompletedPoints, calculateTotalPlannedPoints } from '@/utils/points';
 
 const ChecklistView: React.FC = () => {
   const { 
@@ -40,7 +41,7 @@ const ChecklistView: React.FC = () => {
     const loadStreakData = async () => {
       try {
         // Import storage functions
-        const { getChecklist } = await import('@/utils/storage');
+        const { getChecklist, getSchedule } = await import('@/utils/storage');
         
         const data = [];
         for (let i = 6; i >= 0; i--) {
@@ -49,11 +50,14 @@ const ChecklistView: React.FC = () => {
           const dateStr = format(date, 'yyyy-MM-dd');
           
           try {
-            // Try to get existing checklist
+            // Try to get existing checklist and schedule
             const checklist = await getChecklist(dateStr);
+            const schedule = await getSchedule(dateStr);
             
             let checkmarks = 0;
             let hasData = false;
+            let actualPoints = 0;
+            let plannedPoints = 0;
             
             if (checklist) {
               // Calculate checkmarks from existing checklist
@@ -65,12 +69,19 @@ const ChecklistView: React.FC = () => {
               hasData = checklist.wake0730 || checklist.noWeekdayYTGames || checklist.lightsOut2330 || (checklist.focusBlocksCompleted ?? 0) > 0;
             }
             
+            // Calculate actual points from schedule if available
+            if (schedule && schedule.blocks) {
+              plannedPoints = calculateTotalPlannedPoints(schedule.blocks);
+              actualPoints = calculateTotalCompletedPoints(schedule.blocks);
+            }
+            
             const successRate = Math.round((checkmarks / 4) * 100);
             
             data.push({
               date: format(date, 'MMM dd'),
               successRate,
-              points: Math.floor((successRate / 100) * 96),
+              points: actualPoints, // Now using ACTUAL points from completed blocks!
+              plannedPoints,
               checkmarks,
               hasData
             });
@@ -82,6 +93,7 @@ const ChecklistView: React.FC = () => {
               date: format(date, 'MMM dd'),
               successRate: 0,
               points: 0,
+              plannedPoints: 0,
               checkmarks: 0,
               hasData: false
             });
@@ -206,25 +218,30 @@ const ChecklistView: React.FC = () => {
   const totalItems = checklistItems.length;
   const successRate = currentChecklist?.successRate || Math.round((completedItems / totalItems) * 100);
 
+  // Calculate actual points from completed blocks
+  const totalPlannedPoints = calculateTotalPlannedPoints(currentSchedule.blocks);
+  const totalCompletedPoints = calculateTotalCompletedPoints(currentSchedule.blocks);
+  const categoryPointsData = calculateCategoryPoints(currentSchedule.blocks, categories);
+
   // Prepare pie chart data
   const pieData = [
     { name: 'Completed', value: completedItems, color: '#10b981' },
     { name: 'Remaining', value: totalItems - completedItems, color: '#e5e7eb' }
   ];
 
-  // Category breakdown from schedule blocks
-  const categoryBreakdown = categories.map(category => {
-    const categoryBlocks = currentSchedule.blocks.filter(block => block.categoryId === category.id);
-    const completedCategoryBlocks = categoryBlocks.filter(block => block.status === 'completed');
+  // Category breakdown from schedule blocks - now showing POINTS instead of block counts
+  const categoryBreakdown = categoryPointsData.map(cp => {
+    const category = categories.find(cat => cat.id === cp.categoryId);
+    if (!category || cp.planned === 0) return null;
     
     return {
       name: category.name,
-      completed: completedCategoryBlocks.length,
-      total: categoryBlocks.length,
+      completedPoints: cp.completed,
+      totalPoints: cp.planned,
       color: category.color,
-      percentage: categoryBlocks.length > 0 ? Math.round((completedCategoryBlocks.length / categoryBlocks.length) * 100) : 0
+      percentage: cp.planned > 0 ? Math.round((cp.completed / cp.planned) * 100) : 0
     };
-  }).filter(cat => cat.total > 0);
+  }).filter(cat => cat !== null);
 
   return (
     <div className="p-4">
@@ -257,8 +274,8 @@ const ChecklistView: React.FC = () => {
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Points Earned</h3>
             <Target className="w-4 h-4 text-blue-500" />
           </div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{Math.floor((successRate / 100) * 96)}</div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">out of 96 points</div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalCompletedPoints}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">out of {totalPlannedPoints} points</div>
         </div>
 
         {/* Date */}
@@ -300,15 +317,20 @@ const ChecklistView: React.FC = () => {
 
         {/* 7-Day Streak */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">7-Day Progress</h3>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">7-Day Points Earned</h3>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={streakData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis />
-                <Tooltip />
-                <Bar dataKey="successRate" fill="#3b82f6" />
+                <Tooltip 
+                  formatter={(value: number, name: string) => {
+                    if (name === 'points') return [`${value} pts`, 'Earned'];
+                    return [value, name];
+                  }}
+                />
+                <Bar dataKey="points" fill="#3b82f6" name="Points Earned" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -330,7 +352,7 @@ const ChecklistView: React.FC = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {category.completed}/{category.total}
+                  {category.completedPoints}/{category.totalPoints} pts
                 </span>
                 <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   {category.percentage}%

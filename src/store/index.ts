@@ -77,6 +77,7 @@ interface AppState {
   updateSchedule: (schedule: DaySchedule) => Promise<void>;
   updateBlockStatus: (blockId: string, status: 'completed' | 'skipped') => Promise<void>;
   updateBlockTitle: (blockId: string, newTitle: string) => Promise<void>;
+  updateBlockDescription: (blockId: string, newDescription: string) => Promise<void>;
   resetBlockStatus: (blockId: string) => Promise<void>;
   snoozeBlock: (blockId: string, minutes: number) => Promise<void>;
   
@@ -247,7 +248,8 @@ export const useAppStore = create<AppState>()(
                 categoryId: block.categoryId,
                 start: new Date(`${date}T${block.startTime}:00`),
                 end: new Date(`${date}T${block.endTime}:00`),
-                status: 'planned' as const
+                status: 'planned' as const,
+                description: block.description // Copy description from template
               }))
             };
 
@@ -344,6 +346,24 @@ export const useAppStore = create<AppState>()(
             await get().updateSchedule(updatedSchedule);
           } catch (error) {
             set({ error: error instanceof Error ? error.message : 'Failed to update block title' });
+          }
+        },
+
+        updateBlockDescription: async (blockId: string, newDescription: string) => {
+          try {
+            const { currentSchedule } = get();
+            if (!currentSchedule) return;
+
+            const updatedBlocks = currentSchedule.blocks.map(block =>
+              block.id === blockId
+                ? { ...block, description: newDescription }
+                : block
+            );
+
+            const updatedSchedule = { ...currentSchedule, blocks: updatedBlocks };
+            await get().updateSchedule(updatedSchedule);
+          } catch (error) {
+            set({ error: error instanceof Error ? error.message : 'Failed to update block description' });
           }
         },
 

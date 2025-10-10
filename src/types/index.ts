@@ -20,6 +20,7 @@ export interface TimeBlock {
   categoryId: string;
   startTime: string; // HH:mm format for templates
   endTime: string;   // HH:mm format for templates
+  description?: string; // Optional multiline description/instructions
 }
 
 export interface TimeBlockInstance {
@@ -31,6 +32,7 @@ export interface TimeBlockInstance {
   end: Date;   // Actual UTC timestamp
   status: BlockStatus;
   completedAt?: Date;
+  description?: string; // Optional multiline description/instructions
 }
 
 export interface DaySchedule {

@@ -3,18 +3,21 @@ import { useAppStore } from '@/store';
 import { format, parseISO, addDays, subDays } from 'date-fns';
 import { TimeBlockInstance } from '@/types';
 import { cn } from '@/lib/utils';
-import { CheckCircle, XCircle, Clock, Edit, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Edit, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { getCurrentDateString } from '@/utils/time';
 
 const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string; categoryName: string }> = ({ block, categoryColor, categoryName }) => {
-  const { updateBlockStatus, updateBlockTitle, resetBlockStatus, snoozeBlock } = useAppStore();
+  const { updateBlockStatus, updateBlockTitle, resetBlockStatus, snoozeBlock, updateBlockDescription } = useAppStore();
   const [isEditing, setIsEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(block.title);
+  const [newDescription, setNewDescription] = useState(block.description || '');
+  const [isExpanded, setIsExpanded] = useState(false);
   
-  // Update local title when block changes
+  // Update local state when block changes
   useEffect(() => {
     setNewTitle(block.title);
-  }, [block.title]);
+    setNewDescription(block.description || '');
+  }, [block.title, block.description]);
   
   const now = new Date();
   const isCurrent = now >= block.start && now <= block.end;
@@ -37,6 +40,9 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string;
   const handleSaveEdit = async () => {
     if (newTitle.trim() && newTitle !== block.title) {
       await updateBlockTitle(block.id, newTitle.trim());
+    }
+    if (newDescription !== (block.description || '')) {
+      await updateBlockDescription(block.id, newDescription);
     }
     setIsEditing(false);
   };
@@ -78,7 +84,34 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string;
         </span>
       </div>
       
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Category: {categoryName}</p>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm text-gray-600 dark:text-gray-400">Category: {categoryName}</p>
+        {block.description && (
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="w-4 h-4" />
+                Hide Details
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4" />
+                Show Details
+              </>
+            )}
+          </button>
+        )}
+      </div>
+      
+      {/* Expandable Description */}
+      {isExpanded && block.description && (
+        <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{block.description}</p>
+        </div>
+      )}
       
       {/* Action Buttons */}
       <div className="flex gap-2 flex-wrap">
@@ -147,6 +180,18 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string;
             />
           </div>
           
+          {/* Description Edit */}
+          <div className="mb-3">
+            <label className="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Description / Instructions</label>
+            <textarea
+              value={newDescription}
+              onChange={(e) => setNewDescription(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Add instructions, links, or notes for this time block..."
+              rows={4}
+            />
+          </div>
+          
           {/* Status Reset */}
           {(isCompleted || isSkipped) && (
             <div className="mb-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
@@ -174,6 +219,7 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string;
             <button 
               onClick={() => {
                 setNewTitle(block.title);
+                setNewDescription(block.description || '');
                 setIsEditing(false);
               }}
               className="px-4 py-2 bg-gray-500 text-white text-sm rounded hover:bg-gray-600 transition-colors"

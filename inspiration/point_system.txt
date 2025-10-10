@@ -1,0 +1,36 @@
+The simple rule
+	• Sleep is tracked in hours, not points.
+	• Points cover only your awake time.
+	• 1 point = 10 minutes.
+	• Daily points = (24 − your sleep hours) × 6.
+		○ Example: if you sleep 8h, you have (24−8)×6 = 96 points to spend while awake.
+A sane weekday split (assuming ~8h sleep → 96 pts)
+Feel free to tweak, but this is a realistic starting line:
+	• Deep work / study: 26 pts ≈ 4h20 (e.g., four × 50-min blocks)
+	• Admin / chores / messages: 8 pts ≈ 1h20
+	• Meals + hygiene: 12 pts ≈ 2h
+	• Exercise / walk / mobility: 6 pts ≈ 1h
+	• Leisure (non-YouTube, non-gaming on weekdays): 12 pts ≈ 2h
+	• Errands / commute / life stuff: 8 pts ≈ 1h20
+	• Buffer / slack (unexpected things): 24 pts ≈ 4h
+Why a big buffer? Because life happens. If you don’t need it, it naturally turns into extra deep work or extra (non-YT/game) leisure—without breaking the system.
+How to “account” points during the day
+	• Before you start: write your day’s category caps (e.g., Leisure 12, Deep work 26…).
+	• As you go: every time you start something, start a 10-minute timer and tick down 1 point per timer.
+		○ 25-min focus? Count 3 points (round up).
+		○ 50-min block? 5 points.
+	• When a category hits zero, it’s closed (like using up calories). If you want more of something, you must borrow from Buffer deliberately—write it down so it’s a conscious choice.
+Sleep accounting (separate from points)
+	• Choose a fixed sleep window (e.g., 23:30–07:30).
+	• At day’s end, just check ✅/❌ for: Wake time hit? Lights out hit? Total hours?
+	• If sleep changes (say you slept 7h), tomorrow’s points = (24−7)×6 = 102. Adjust your caps in the morning.
+Weekends & YouTube/games
+	• Keep the same math. If you allow YouTube/games Fri–Sun, they simply draw from the Leisure cap (e.g., 12–20 pts = 2–3h20). If you want more, it must come from Buffer or by shrinking another category.
+A concrete example day (8h sleep → 96 pts)
+	• 4 × 50-min focus blocks = 20 pts
+	• 40-min admin + 40-min email/chat = 8 pts
+	• Meals + hygiene across the day ≈ 12 pts
+	• 30-min walk + 30-min mobility = 6 pts
+	• 1h reading + 1h music/podcast = 12 pts (weekday leisure)
+	• Groceries + dishes 1h20 = 8 pts
+Used so far: 66 pts → Buffer left: 30 pts (for surprises or extra focus/leisure)
