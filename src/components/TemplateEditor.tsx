@@ -73,7 +73,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-50 dark:bg-gray-900 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-gray-100 dark:bg-gray-900 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
@@ -122,7 +122,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
               {blocks.map((block, index) => (
                 <div
                   key={block.id}
-                  className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm"
+                  className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-gray-300 dark:border-gray-600"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                     {/* Title */}
@@ -134,7 +134,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
                         type="text"
                         value={block.title}
                         onChange={(e) => handleUpdateBlock(index, { title: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
 
@@ -147,7 +147,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
                         type="time"
                         value={block.startTime}
                         onChange={(e) => handleUpdateBlock(index, { startTime: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 [color-scheme:light] dark:[color-scheme:dark]"
+                        className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 [color-scheme:light] dark:[color-scheme:dark]"
                       />
                     </div>
 
@@ -160,7 +160,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
                         type="time"
                         value={block.endTime}
                         onChange={(e) => handleUpdateBlock(index, { endTime: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 [color-scheme:light] dark:[color-scheme:dark]"
+                        className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 [color-scheme:light] dark:[color-scheme:dark]"
                       />
                     </div>
 
@@ -172,7 +172,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
                       <select
                         value={block.categoryId}
                         onChange={(e) => handleUpdateBlock(index, { categoryId: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         {categories.map(cat => (
                           <option key={cat.id} value={cat.id}>
@@ -190,7 +190,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
                       <textarea
                         value={block.description || ''}
                         onChange={(e) => handleUpdateBlock(index, { description: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         rows={3}
                         placeholder="Add instructions, links, or notes..."
                       />
