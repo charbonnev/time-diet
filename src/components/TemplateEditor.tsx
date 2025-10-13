@@ -73,7 +73,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-gray-50 dark:bg-gray-900 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
@@ -98,7 +98,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
               placeholder="e.g., My Custom Schedule"
             />
           </div>
@@ -111,7 +111,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
               </h3>
               <button
                 onClick={handleAddBlock}
-                className="flex items-center gap-2 px-3 py-1 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-colors"
+                className="flex items-center gap-2 px-3 py-1 bg-green-600 dark:bg-green-700 text-white text-sm rounded-md hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Add Block
@@ -122,7 +122,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
               {blocks.map((block, index) => (
                 <div
                   key={block.id}
-                  className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700"
+                  className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm"
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                     {/* Title */}
@@ -134,7 +134,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
                         type="text"
                         value={block.title}
                         onChange={(e) => handleUpdateBlock(index, { title: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
 
@@ -147,7 +147,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
                         type="time"
                         value={block.startTime}
                         onChange={(e) => handleUpdateBlock(index, { startTime: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 [color-scheme:light] dark:[color-scheme:dark]"
                       />
                     </div>
 
@@ -160,7 +160,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
                         type="time"
                         value={block.endTime}
                         onChange={(e) => handleUpdateBlock(index, { endTime: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 [color-scheme:light] dark:[color-scheme:dark]"
                       />
                     </div>
 
@@ -172,7 +172,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
                       <select
                         value={block.categoryId}
                         onChange={(e) => handleUpdateBlock(index, { categoryId: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         {categories.map(cat => (
                           <option key={cat.id} value={cat.id}>
@@ -190,7 +190,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
                       <textarea
                         value={block.description || ''}
                         onChange={(e) => handleUpdateBlock(index, { description: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-500 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         rows={3}
                         placeholder="Add instructions, links, or notes..."
                       />
@@ -200,7 +200,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
                   {/* Delete Button */}
                   <button
                     onClick={() => handleDeleteBlock(index)}
-                    className="flex items-center gap-1 px-3 py-1 bg-red-500 text-white text-sm rounded-md hover:bg-red-600 transition-colors"
+                    className="flex items-center gap-1 px-3 py-1 bg-red-600 dark:bg-red-700 text-white text-sm rounded-md hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                     Delete Block
@@ -221,7 +221,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
         <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            className="px-4 py-2 bg-gray-600 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
             disabled={isSaving}
           >
             Cancel
@@ -229,7 +229,7 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save className="w-4 h-4" />
             {isSaving ? 'Saving...' : 'Save Template'}
