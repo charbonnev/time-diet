@@ -30,7 +30,8 @@ import {
   saveNotification,
   clearNotificationQueue,
   getAllChecklists,
-  getChecklistsInRange
+  getChecklistsInRange,
+  getDB
 } from '@/utils/storage';
 import {
   createDefaultCategories,
@@ -80,6 +81,7 @@ interface AppState {
   updateBlockDescription: (blockId: string, newDescription: string) => Promise<void>;
   resetBlockStatus: (blockId: string) => Promise<void>;
   snoozeBlock: (blockId: string, minutes: number) => Promise<void>;
+  clearDaySchedule: (date: string) => Promise<void>;
   
   // Checklists
   loadChecklistForDate: (date: string) => Promise<void>;
@@ -409,6 +411,38 @@ export const useAppStore = create<AppState>()(
             await get().updateSchedule(updatedSchedule);
           } catch (error) {
             set({ error: error instanceof Error ? error.message : 'Failed to snooze block' });
+          }
+        },
+
+        clearDaySchedule: async (date: string) => {
+          try {
+            const { currentSchedule } = get();
+            
+            // Delete the schedule from storage
+            const db = await getDB();
+            
+            // Find and delete the schedule by date
+            const schedule = await db.getFromIndex('schedules', 'by-date', date);
+            if (schedule) {
+              await db.delete('schedules', schedule.id);
+            }
+            
+            // Also clear the checklist for this date
+            await db.delete('checklists', date);
+            
+            // Update store if this is the currently loaded schedule
+            if (currentSchedule && date === currentSchedule.date) {
+              set({ 
+                currentSchedule: null,
+                currentChecklist: null,
+                categoryPoints: []
+              });
+            }
+            
+            // Recalculate streaks since we removed data
+            await get().calculateStreaks();
+          } catch (error) {
+            set({ error: error instanceof Error ? error.message : 'Failed to clear day schedule' });
           }
         },
 

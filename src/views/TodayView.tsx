@@ -3,7 +3,7 @@ import { useAppStore } from '@/store';
 import { format, parseISO, addDays, subDays } from 'date-fns';
 import { TimeBlockInstance } from '@/types';
 import { cn } from '@/lib/utils';
-import { CheckCircle, XCircle, Clock, Edit, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Edit, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { getCurrentDateString } from '@/utils/time';
 
 const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string; categoryName: string }> = ({ block, categoryColor, categoryName }) => {
@@ -234,9 +234,10 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string;
 };
 
 const TodayView: React.FC = () => {
-  const { currentSchedule, categories, loadScheduleForDate, templates, applyTemplateToDate, settings } = useAppStore();
+  const { currentSchedule, categories, loadScheduleForDate, templates, applyTemplateToDate, settings, clearDaySchedule } = useAppStore();
   const today = getCurrentDateString();
   const [viewDate, setViewDate] = useState(today);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   useEffect(() => {
     console.log('🏠 TodayView: COMPONENT MOUNTED - Loading date:', viewDate);
@@ -281,6 +282,11 @@ const TodayView: React.FC = () => {
   };
 
   const isToday = viewDate === today;
+
+  const handleClearDay = async () => {
+    await clearDaySchedule(viewDate);
+    setShowClearConfirm(false);
+  };
 
   if (!currentSchedule || currentSchedule.blocks.length === 0) {
     return (
@@ -351,43 +357,91 @@ const TodayView: React.FC = () => {
   return (
     <div className="p-4">
       {settings.correctionMode && (
-        <div className="flex items-center justify-between mb-4">
-          <button
-            onClick={handlePreviousDay}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-          </button>
-          <div className="text-center">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              {isToday ? "Today's" : "Day"} Schedule
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{format(parseISO(viewDate), 'EEEE, MMMM do, yyyy')}</p>
-            {!isToday && (
-              <button
-                onClick={handleToday}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mt-1"
-              >
-                Back to Today
-              </button>
-            )}
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={handlePreviousDay}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            </button>
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                {isToday ? "Today's" : "Day"} Schedule
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{format(parseISO(viewDate), 'EEEE, MMMM do, yyyy')}</p>
+              {!isToday && (
+                <button
+                  onClick={handleToday}
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mt-1"
+                >
+                  Back to Today
+                </button>
+              )}
+            </div>
+            <button
+              onClick={handleNextDay}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              <ChevronRight className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            </button>
           </div>
-          <button
-            onClick={handleNextDay}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          >
-            <ChevronRight className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-          </button>
-        </div>
+          <div className="mb-4 flex justify-end">
+            <button
+              onClick={() => setShowClearConfirm(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-red-500 text-white text-sm rounded-md hover:bg-red-600 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              Clear Day
+            </button>
+          </div>
+        </>
       )}
       {!settings.correctionMode && (
-        <div className="mb-4">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-            Today's Schedule
-          </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{format(parseISO(today), 'EEEE, MMMM do, yyyy')}</p>
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              Today's Schedule
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{format(parseISO(today), 'EEEE, MMMM do, yyyy')}</p>
+          </div>
+          <button
+            onClick={() => setShowClearConfirm(true)}
+            className="flex items-center gap-2 px-3 py-2 bg-red-500 text-white text-sm rounded-md hover:bg-red-600 transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+            Clear Day
+          </button>
         </div>
       )}
+      {/* Clear Day Confirmation Dialog */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
+              Clear Day Schedule?
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              This will remove all timeblocks and checklist data for {format(parseISO(viewDate), 'MMMM do, yyyy')}. This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleClearDay}
+                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors font-semibold"
+              >
+                Clear Day
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="space-y-3">
         {currentSchedule.blocks.map((block) => {
           const categoryInfo = getCategoryInfo(block.categoryId);
