@@ -32,7 +32,13 @@ self.addEventListener('push', function(event) {
   let actions = [];
   
   if (notificationType === 'early-warning') {
-    // 5-minute early warning: Complete or Skip
+    // Early warning (wrap-up for contiguous OR upcoming for non-contiguous): Complete or Skip
+    actions = [
+      { action: 'complete', title: '✓ Complete' },
+      { action: 'skip', title: '⏭ Skip' }
+    ];
+  } else if (notificationType === 'block-end') {
+    // End of block (non-contiguous): Complete or Skip
     actions = [
       { action: 'complete', title: '✓ Complete' },
       { action: 'skip', title: '⏭ Skip' }

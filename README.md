@@ -1,6 +1,6 @@
 # Time Diet - Structured Routine Manager
 
-**Version 1.4.0** | **Live at**: [time-diet.vercel.app](https://time-diet.vercel.app)
+**Version 1.5.0** | **Live at**: [time-diet.vercel.app](https://time-diet.vercel.app)
 
 A comprehensive Progressive Web App (PWA) for managing time blocks, tracking daily routines, and building productive habits with ADHD-friendly features.
 
@@ -34,6 +34,35 @@ A comprehensive Progressive Web App (PWA) for managing time blocks, tracking dai
 - **Structured Routine**: Consistent daily schedule to build habits
 
 ## 📋 Changelog
+
+### Version 1.5.0 (2025-01-13)
+**🧠 MAJOR UX IMPROVEMENT: Smart-Merge Notification System**
+
+**ADHD-Optimized Notification Strategy:**
+- **Contiguous blocks**: Smart-merge reduces cognitive load
+  - Early warning (5-min before): "Wrap up: [Current Block]" + "Next: [Next Block] in 5 minutes"
+  - Buttons: "✓ Complete" / "⏭ Skip" (for current block)
+  - Block start: "Time for: [Next Block]" with "⏰ Snooze" / "Open App"
+  - **Result**: Ask for completion during natural "winding down" phase, not at high-pressure "start now!" moment
+
+- **Non-contiguous blocks** (with gaps): Full notification set
+  - Block end: "How did it go?" with Complete/Skip buttons
+  - Early warning: "Coming up: [Next Block] in 5 minutes"
+  - Block start: "Time for: [Next Block]" with Snooze/Open
+
+**Technical Implementation:**
+- Smart detection of contiguous vs non-contiguous blocks
+- Context-aware notification scheduling based on block relationships
+- Automatic notification rescheduling when blocks are snoozed
+- Support for flexible scheduling patterns (gaps between blocks)
+
+**UX Benefits:**
+- ✅ Reduces notification fatigue (no simultaneous notifications)
+- ✅ Supports executive function instead of challenging it
+- ✅ Contextual actions at the right moment
+- ✅ Works with any scheduling pattern
+
+**Inspired by UX research for ADHD users** - this is a defining feature of Time Diet!
 
 ### Version 1.4.0 (2025-01-13)
 **🚀 MAJOR FEATURE: Interactive Notification Actions**
