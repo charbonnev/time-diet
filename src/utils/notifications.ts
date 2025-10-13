@@ -73,7 +73,8 @@ export async function showNotification(title: string, options?: NotificationOpti
  */
 export function scheduleBlockNotifications(
   blocks: TimeBlockInstance[],
-  earlyWarningMinutes: number = 0
+  earlyWarningMinutes: number = 0,
+  date?: string
 ): NotificationQueue[] {
   const notifications: NotificationQueue[] = [];
   const now = new Date();
@@ -88,7 +89,9 @@ export function scheduleBlockNotifications(
       blockId: block.id,
       scheduledTime: block.start,
       title: `Time for: ${block.title}`,
-      body: `Starting now until ${format(block.end, 'HH:mm')}`
+      body: `Starting now until ${format(block.end, 'HH:mm')}`,
+      date: date,
+      notificationType: 'block-start'
     });
 
     // Early warning notification if enabled
@@ -101,7 +104,9 @@ export function scheduleBlockNotifications(
           scheduledTime: earlyWarningTime,
           title: `Upcoming: ${block.title}`,
           body: `Starting in ${earlyWarningMinutes} minutes`,
-          isEarlyWarning: true
+          isEarlyWarning: true,
+          date: date,
+          notificationType: 'early-warning'
         });
       }
     }
@@ -127,7 +132,9 @@ export async function scheduleNotificationsPush(notifications: NotificationQueue
       body: notif.body,
       scheduledTime: notif.scheduledTime,
       blockId: notif.blockId,
-      isEarlyWarning: notif.isEarlyWarning || false
+      isEarlyWarning: notif.isEarlyWarning || false,
+      date: notif.date,
+      notificationType: notif.notificationType || 'default'
     }));
     
     // Schedule via push server

@@ -83,6 +83,8 @@ export interface NotificationQueue {
   title: string;
   body: string;
   isEarlyWarning?: boolean;
+  date?: string; // Date string for the schedule (YYYY-MM-DD)
+  notificationType?: 'early-warning' | 'block-start' | 'default';
 }
 
 // Computed data types

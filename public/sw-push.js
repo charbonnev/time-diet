@@ -27,6 +27,30 @@ self.addEventListener('push', function(event) {
     };
   }
 
+  // Determine notification type and set appropriate actions
+  const notificationType = data.notificationType || 'default';
+  let actions = [];
+  
+  if (notificationType === 'early-warning') {
+    // 5-minute early warning: Complete or Skip
+    actions = [
+      { action: 'complete', title: '✓ Complete' },
+      { action: 'skip', title: '⏭ Skip' }
+    ];
+  } else if (notificationType === 'block-start') {
+    // Block starting now: Snooze
+    actions = [
+      { action: 'snooze', title: '⏰ Snooze 5min' },
+      { action: 'open', title: 'Open App' }
+    ];
+  } else {
+    // Default actions
+    actions = [
+      { action: 'open', title: 'Open App' },
+      { action: 'dismiss', title: 'Dismiss' }
+    ];
+  }
+
   const options = {
     body: data.body,
     icon: data.icon || '/pwa-192x192.png',
@@ -37,16 +61,7 @@ self.addEventListener('push', function(event) {
     renotify: true, // Always show notification even if tag exists
     vibrate: [200, 100, 200], // Vibration pattern for mobile
     silent: false, // Ensure sound plays
-    actions: [
-      {
-        action: 'open',
-        title: 'Open App'
-      },
-      {
-        action: 'dismiss',
-        title: 'Dismiss'
-      }
-    ]
+    actions: actions
   };
 
   event.waitUntil(
@@ -55,15 +70,75 @@ self.addEventListener('push', function(event) {
 });
 
 self.addEventListener('notificationclick', function(event) {
-  console.log('Notification clicked:', event);
+  console.log('🔔 Notification clicked:', event.action, event.notification.data);
+  
+  const action = event.action;
+  const notificationData = event.notification.data;
   
   event.notification.close();
 
-  if (event.action === 'dismiss') {
+  // Handle different actions
+  if (action === 'dismiss') {
+    return;
+  }
+  
+  if (action === 'complete') {
+    // Send message to app to complete the timeblock
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+        for (let i = 0; i < clientList.length; i++) {
+          clientList[i].postMessage({
+            type: 'COMPLETE_TIMEBLOCK',
+            blockId: notificationData.blockId,
+            date: notificationData.date
+          });
+        }
+        // Also open/focus the app
+        if (clientList.length > 0) {
+          return clientList[0].focus();
+        } else if (self.clients.openWindow) {
+          return self.clients.openWindow('/');
+        }
+      })
+    );
+    return;
+  }
+  
+  if (action === 'skip') {
+    // Send message to app to skip the timeblock
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+        for (let i = 0; i < clientList.length; i++) {
+          clientList[i].postMessage({
+            type: 'SKIP_TIMEBLOCK',
+            blockId: notificationData.blockId,
+            date: notificationData.date
+          });
+        }
+        // Don't open the app for skip - just dismiss
+      })
+    );
+    return;
+  }
+  
+  if (action === 'snooze') {
+    // Send message to app to snooze notification (reschedule in 5 minutes)
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
+        for (let i = 0; i < clientList.length; i++) {
+          clientList[i].postMessage({
+            type: 'SNOOZE_NOTIFICATION',
+            blockId: notificationData.blockId,
+            date: notificationData.date,
+            snoozeMinutes: 5
+          });
+        }
+      })
+    );
     return;
   }
 
-  // Open or focus the app
+  // Default: Open or focus the app
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
       // If app is already open, focus it and send refresh message

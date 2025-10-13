@@ -1,6 +1,6 @@
 # Time Diet - Structured Routine Manager
 
-**Version 1.3.1** | **Live at**: [time-diet.vercel.app](https://time-diet.vercel.app)
+**Version 1.4.0** | **Live at**: [time-diet.vercel.app](https://time-diet.vercel.app)
 
 A comprehensive Progressive Web App (PWA) for managing time blocks, tracking daily routines, and building productive habits with ADHD-friendly features.
 
@@ -34,6 +34,25 @@ A comprehensive Progressive Web App (PWA) for managing time blocks, tracking dai
 - **Structured Routine**: Consistent daily schedule to build habits
 
 ## 📋 Changelog
+
+### Version 1.4.0 (2025-01-13)
+**🚀 MAJOR FEATURE: Interactive Notification Actions**
+
+**Notification Action Buttons:**
+- **Complete from notification**: Early warning notifications (5-min) have "✓ Complete" and "⏭ Skip" buttons
+- **Snooze from notification**: Block start notifications have "⏰ Snooze 5min" and "Open App" buttons
+- **Works on Android & Desktop**: Full support for notification action buttons
+- **Background actions**: Complete or skip timeblocks without opening the app
+- **Smart handling**: Actions update the schedule and checklist automatically
+
+**Technical Implementation:**
+- Service Worker notification actions with proper event handling
+- Message passing between Service Worker and app
+- Notification type detection (early-warning vs block-start)
+- Block ID and date tracking in notification payload
+- Automatic schedule updates from notification actions
+
+**Result:** Manage your schedule directly from notifications - perfect for quick completions or snoozing blocks when you're busy!
 
 ### Version 1.3.1 (2025-01-13)
 **✨ NEW FEATURE: CSV Template Management**

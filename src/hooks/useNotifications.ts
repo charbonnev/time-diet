@@ -76,7 +76,8 @@ export function useNotifications() {
       // Schedule new notifications
       const notifications = scheduleBlockNotifications(
         currentSchedule.blocks,
-        settings.earlyWarningMinutes
+        settings.earlyWarningMinutes,
+        currentSchedule.date
       );
 
       // Save notifications to store

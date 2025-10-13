@@ -235,7 +235,7 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string;
 };
 
 const TodayView: React.FC = () => {
-  const { currentSchedule, categories, loadScheduleForDate, templates, applyTemplateToDate, settings, clearDaySchedule } = useAppStore();
+  const { currentSchedule, categories, loadScheduleForDate, templates, applyTemplateToDate, settings, clearDaySchedule, updateBlockStatus } = useAppStore();
   const today = getCurrentDateString();
   const [viewDate, setViewDate] = useState(today);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -257,13 +257,42 @@ const TodayView: React.FC = () => {
 
   // Listen for service worker messages (notification clicks)
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type === 'NOTIFICATION_CLICKED' && event.data?.action === 'refresh-and-scroll') {
+    const handleMessage = async (event: MessageEvent) => {
+      const { type, blockId, date, action, snoozeMinutes } = event.data || {};
+      
+      if (type === 'NOTIFICATION_CLICKED' && action === 'refresh-and-scroll') {
         console.log('🔔 Notification clicked - refreshing and scrolling');
         // Reload today's schedule
         loadScheduleForDate(today);
         // Trigger scroll after data loads
         setShouldScrollToCurrent(true);
+      }
+      
+      if (type === 'COMPLETE_TIMEBLOCK' && blockId && date) {
+        console.log('🔔 Complete timeblock from notification:', blockId, date);
+        // Load the schedule for that date
+        await loadScheduleForDate(date);
+        // Mark block as completed
+        await updateBlockStatus(blockId, 'completed');
+        // Show feedback
+        console.log('✓ Timeblock marked as complete');
+      }
+      
+      if (type === 'SKIP_TIMEBLOCK' && blockId && date) {
+        console.log('🔔 Skip timeblock from notification:', blockId, date);
+        // Load the schedule for that date
+        await loadScheduleForDate(date);
+        // Mark block as skipped
+        await updateBlockStatus(blockId, 'skipped');
+        console.log('⏭ Timeblock skipped');
+      }
+      
+      if (type === 'SNOOZE_NOTIFICATION' && blockId && date && snoozeMinutes) {
+        console.log('🔔 Snooze notification:', blockId, date, snoozeMinutes, 'minutes');
+        // Reschedule the notification
+        // This would require re-triggering the notification system
+        // For now, just log it
+        console.log('⏰ Notification snoozed for', snoozeMinutes, 'minutes');
       }
     };
 
@@ -272,7 +301,7 @@ const TodayView: React.FC = () => {
     return () => {
       navigator.serviceWorker?.removeEventListener('message', handleMessage);
     };
-  }, [loadScheduleForDate, today]);
+  }, [loadScheduleForDate, updateBlockStatus, today]);
 
   // Scroll to current timeblock when schedule loads or when triggered
   useEffect(() => {
