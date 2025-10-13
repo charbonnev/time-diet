@@ -18,6 +18,7 @@ const SettingsView: React.FC = () => {
   const [showImportDialog, setShowImportDialog] = React.useState(false);
   const [importTemplateName, setImportTemplateName] = React.useState('');
   const [importErrors, setImportErrors] = React.useState<string[]>([]);
+  const [showDebugNotifications, setShowDebugNotifications] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleSaveTemplate = async (template: any) => {
@@ -657,49 +658,66 @@ const SettingsView: React.FC = () => {
           </button>
         </div>
 
-        {/* Test Notification */}
+        {/* Debug Notifications Section */}
         {settings.notificationsEnabled && (
-          <div className="mb-4">
-            <div className="flex gap-2 mb-2 flex-wrap">
-              <button
-                onClick={handleTestNotification}
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-colors"
-              >
-                <Bell className="w-4 h-4" />
-                Test Now
-              </button>
-              <button
-                onClick={handleDelayedTestNotification}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors"
-              >
-                <Clock className="w-4 h-4" />
-                Test in 10s
-              </button>
-              <button
-                onClick={handlePushServerTest}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white text-sm rounded-md hover:bg-purple-600 transition-colors"
-              >
-                <Server className="w-4 h-4" />
-                Test Push Server
-              </button>
-              <button
-                onClick={handleRefreshSubscription}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white text-sm rounded-md hover:bg-orange-600 transition-colors"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Refresh Subscription
-              </button>
-              <button
-                onClick={handleBulkSchedulingTest}
-                className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 transition-colors"
-              >
-                <Clock className="w-4 h-4" />
-                Test Bulk Scheduling
-              </button>
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              "Test Now" = Local notification • "Test in 10s" = Background test • "Test Push Server" = Railway server (works when app is closed) • "Refresh Subscription" = Fix stale push subscriptions • "Test Bulk Scheduling" = Test the new system that schedules multiple notifications
-            </p>
+          <div className="mb-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+            <button
+              onClick={() => setShowDebugNotifications(!showDebugNotifications)}
+              className="flex items-center justify-between w-full mb-3"
+            >
+              <div className="flex items-center">
+                <Server className="w-4 h-4 mr-2 text-gray-600 dark:text-gray-400" />
+                <span className="font-medium text-gray-700 dark:text-gray-300">Debug Notifications</span>
+              </div>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {showDebugNotifications ? '▼' : '▶'}
+              </span>
+            </button>
+            
+            {showDebugNotifications && (
+              <div>
+                <div className="flex gap-2 mb-2 flex-wrap">
+                  <button
+                    onClick={handleTestNotification}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-600 dark:bg-gray-700 text-white text-sm rounded-md hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <Bell className="w-4 h-4" />
+                    Test Now
+                  </button>
+                  <button
+                    onClick={handleDelayedTestNotification}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-600 dark:bg-gray-700 text-white text-sm rounded-md hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <Clock className="w-4 h-4" />
+                    Test in 10s
+                  </button>
+                  <button
+                    onClick={handlePushServerTest}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-600 dark:bg-gray-700 text-white text-sm rounded-md hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <Server className="w-4 h-4" />
+                    Test Push Server
+                  </button>
+                  <button
+                    onClick={handleRefreshSubscription}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-600 dark:bg-gray-700 text-white text-sm rounded-md hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Refresh Subscription
+                  </button>
+                  <button
+                    onClick={handleBulkSchedulingTest}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-600 dark:bg-gray-700 text-white text-sm rounded-md hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <Clock className="w-4 h-4" />
+                    Test Bulk Scheduling
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  "Test Now" = Local notification • "Test in 10s" = Background test • "Test Push Server" = Railway server (works when app is closed) • "Refresh Subscription" = Fix stale push subscriptions • "Test Bulk Scheduling" = Test the new system that schedules multiple notifications
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -810,7 +828,7 @@ const SettingsView: React.FC = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => handleExportTemplate(template.id)}
-                  className="flex items-center gap-1 px-3 py-1 bg-purple-500 text-white text-sm rounded-md hover:bg-purple-600 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1 bg-gray-600 dark:bg-gray-700 text-white text-sm rounded-md hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
                   title="Export as CSV"
                 >
                   <FileDown className="w-4 h-4" />
@@ -822,7 +840,7 @@ const SettingsView: React.FC = () => {
                     setEditingTemplateId(template.id);
                     setShowTemplateEditor(true);
                   }}
-                  className="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1 bg-blue-600 dark:bg-blue-700 text-white text-sm rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
                 >
                   <Edit2 className="w-4 h-4" />
                   Edit
@@ -835,7 +853,7 @@ const SettingsView: React.FC = () => {
                         await removeTemplate(template.id);
                       }
                     }}
-                    className="flex items-center gap-1 px-3 py-1 bg-red-500 text-white text-sm rounded-md hover:bg-red-600 transition-colors"
+                    className="flex items-center gap-1 px-3 py-1 bg-red-600 dark:bg-red-700 text-white text-sm rounded-md hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                     Delete
@@ -853,7 +871,7 @@ const SettingsView: React.FC = () => {
               setEditingTemplateId(null);
               setShowTemplateEditor(true);
             }}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 transition-colors"
           >
             <Plus className="w-5 h-5" />
             Create New Template
@@ -861,7 +879,7 @@ const SettingsView: React.FC = () => {
           
           <button
             onClick={handleImportClick}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
           >
             <Upload className="w-5 h-5" />
             Import from CSV
@@ -869,7 +887,7 @@ const SettingsView: React.FC = () => {
           
           <button
             onClick={handleResetTemplates}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 dark:bg-orange-700 text-white rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors"
           >
             <RotateCcw className="w-5 h-5" />
             Reset to Default
