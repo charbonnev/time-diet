@@ -809,7 +809,7 @@ const SettingsView: React.FC = () => {
           {templates.map(template => (
             <div 
               key={template.id}
-              className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-700 shadow-sm"
+              className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border-2 border-gray-300 dark:border-gray-700"
             >
               <div className="flex-1">
                 <p className="font-medium text-gray-800 dark:text-gray-200">

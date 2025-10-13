@@ -235,16 +235,23 @@ export const useAppStore = create<AppState>()(
 
         resetTemplatesToDefault: async () => {
           try {
-            const { categories, templates } = get();
+            const { templates } = get();
             
             // Delete all existing templates
             await Promise.all(templates.map(t => deleteTemplate(t.id)));
             
-            // Create default template
-            const challengeTemplate = createChallengeWeekdayTemplate(categories);
+            // Reset categories to default
+            const defaultCategories = createDefaultCategories();
+            await saveCategories(defaultCategories);
+            
+            // Create default template with fresh categories
+            const challengeTemplate = createChallengeWeekdayTemplate(defaultCategories);
             await saveTemplate(challengeTemplate);
             
-            set({ templates: [challengeTemplate] });
+            set({ 
+              categories: defaultCategories,
+              templates: [challengeTemplate] 
+            });
           } catch (error) {
             set({ error: error instanceof Error ? error.message : 'Failed to reset templates' });
           }

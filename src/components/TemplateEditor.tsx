@@ -119,10 +119,15 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
             </div>
 
             <div className="space-y-3">
-              {blocks.map((block, index) => (
+              {blocks.map((block, index) => {
+                const category = categories.find(cat => cat.id === block.categoryId);
+                const borderColor = category?.color || '#6b7280';
+                
+                return (
                 <div
                   key={block.id}
-                  className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-gray-300 dark:border-gray-600"
+                  className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-gray-300 dark:border-gray-600 shadow-md"
+                  style={{ borderLeftWidth: '4px', borderLeftColor: borderColor }}
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                     {/* Title */}
@@ -206,7 +211,8 @@ const TemplateEditor: React.FC<TemplateEditorProps> = ({ template, categories, o
                     Delete Block
                   </button>
                 </div>
-              ))}
+                );
+              })}
 
               {blocks.length === 0 && (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
