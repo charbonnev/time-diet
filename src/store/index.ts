@@ -72,6 +72,7 @@ interface AppState {
   updateTemplate: (template: Template) => Promise<void>;
   removeTemplate: (id: string) => Promise<void>;
   applyTemplateToDate: (templateId: string, date: string) => Promise<void>;
+  resetTemplatesToDefault: () => Promise<void>;
   
   // Schedules
   loadScheduleForDate: (date: string) => Promise<void>;
@@ -229,6 +230,23 @@ export const useAppStore = create<AppState>()(
             }));
           } catch (error) {
             set({ error: error instanceof Error ? error.message : 'Failed to remove template' });
+          }
+        },
+
+        resetTemplatesToDefault: async () => {
+          try {
+            const { categories, templates } = get();
+            
+            // Delete all existing templates
+            await Promise.all(templates.map(t => deleteTemplate(t.id)));
+            
+            // Create default template
+            const challengeTemplate = createChallengeWeekdayTemplate(categories);
+            await saveTemplate(challengeTemplate);
+            
+            set({ templates: [challengeTemplate] });
+          } catch (error) {
+            set({ error: error instanceof Error ? error.message : 'Failed to reset templates' });
           }
         },
 

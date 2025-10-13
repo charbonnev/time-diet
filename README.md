@@ -1,6 +1,6 @@
 # Time Diet - Structured Routine Manager
 
-**Version 1.3.0** | **Live at**: [time-diet.vercel.app](https://time-diet.vercel.app)
+**Version 1.3.1** | **Live at**: [time-diet.vercel.app](https://time-diet.vercel.app)
 
 A comprehensive Progressive Web App (PWA) for managing time blocks, tracking daily routines, and building productive habits with ADHD-friendly features.
 
@@ -35,13 +35,30 @@ A comprehensive Progressive Web App (PWA) for managing time blocks, tracking dai
 
 ## 📋 Changelog
 
+### Version 1.3.1 (2025-01-13)
+**✨ NEW FEATURE: CSV Template Management**
+
+**Template Management:**
+- **Export templates to CSV**: Download any template as a CSV file for backup or editing
+- **Import templates from CSV**: Create new templates by importing CSV files
+- **Reset to default**: Restore the default Challenge Weekday template with one click
+- **Developer-friendly**: Edit templates in Excel/Sheets/VS Code and import them back
+- **Version control ready**: CSV format allows committing templates to git
+
 ### Version 1.3.0 (2025-01-13)
-**✨ NEW FEATURE: Clear Day Schedule**
+**✨ NEW FEATURES: Clear Day & UX Improvements**
+
+**Clear Day Schedule:**
 - **Clear Day button**: Remove all timeblocks and checklist data for a specific day
 - **Confirmation dialog**: Prevents accidental deletion with clear warning message
 - **Smart cleanup**: Automatically recalculates streaks after clearing a day
 - **Available in both modes**: Works in normal view (today only) and correction mode (any day)
 - **Use cases**: Fix wrong template applications, start fresh after mistakes, or reset a day completely
+
+**UX Improvements:**
+- **Calendar dark mode**: Better contrast for scheduled vs unscheduled days
+- **Smart notification handling**: Clicking notifications refreshes and scrolls to current block
+- **Auto-scroll on refresh**: Pull-to-refresh also scrolls to current timeblock
 
 ### Version 1.2.1 (2025-01-03)
 **🐛 Bug Fixes & Architecture Improvements**

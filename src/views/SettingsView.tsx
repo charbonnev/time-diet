@@ -4,23 +4,108 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { useTheme } from '@/components/ThemeProvider';
 import { pushNotificationManager } from '@/utils/pushNotifications';
-import { Bell, Clock, Download, Check, Server, RefreshCw, Moon, Sun, FileText, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Bell, Clock, Download, Check, Server, RefreshCw, Moon, Sun, FileText, Plus, Edit2, Trash2, Upload, FileDown, RotateCcw } from 'lucide-react';
 import packageJson from '../../package.json';
 import TemplateEditor from '@/components/TemplateEditor';
 
 const SettingsView: React.FC = () => {
-  const { settings, updateSettings, templates, removeTemplate, categories, addTemplate, updateTemplate } = useAppStore();
+  const { settings, updateSettings, templates, removeTemplate, categories, addTemplate, updateTemplate, resetTemplatesToDefault } = useAppStore();
   const { requestPermission } = useNotifications();
   const { isInstallable, isInstalled, installApp } = usePWAInstall();
   const { theme, toggleTheme } = useTheme();
   const [showTemplateEditor, setShowTemplateEditor] = React.useState(false);
   const [editingTemplateId, setEditingTemplateId] = React.useState<string | null>(null);
+  const [showImportDialog, setShowImportDialog] = React.useState(false);
+  const [importTemplateName, setImportTemplateName] = React.useState('');
+  const [importErrors, setImportErrors] = React.useState<string[]>([]);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleSaveTemplate = async (template: any) => {
     if (editingTemplateId) {
       await updateTemplate(template);
     } else {
       await addTemplate(template);
+    }
+  };
+
+  const handleExportTemplate = async (templateId: string) => {
+    const { exportTemplateToCSV, downloadCSV } = await import('@/utils/csv');
+    const template = templates.find(t => t.id === templateId);
+    if (!template) return;
+
+    const csvContent = exportTemplateToCSV(template, categories);
+    const filename = `${template.name.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.csv`;
+    downloadCSV(csvContent, filename);
+  };
+
+  const handleImportClick = () => {
+    setImportErrors([]);
+    setImportTemplateName('');
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const { readFileAsText } = await import('@/utils/csv');
+      const csvContent = await readFileAsText(file);
+      
+      // Extract template name from filename (remove .csv extension)
+      const defaultName = file.name.replace(/\.csv$/i, '').replace(/-/g, ' ');
+      setImportTemplateName(defaultName);
+      
+      // Show dialog to confirm name
+      setShowImportDialog(true);
+      
+      // Store the CSV content temporarily
+      (window as any).__pendingCSV = csvContent;
+    } catch (error) {
+      alert('Failed to read file: ' + (error instanceof Error ? error.message : String(error)));
+    }
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleConfirmImport = async () => {
+    const csvContent = (window as any).__pendingCSV;
+    if (!csvContent || !importTemplateName.trim()) return;
+
+    try {
+      const { importTemplateFromCSV } = await import('@/utils/csv');
+      const { template, errors } = importTemplateFromCSV(csvContent, importTemplateName.trim(), categories);
+      
+      if (errors.length > 0) {
+        setImportErrors(errors);
+        return;
+      }
+
+      if (template) {
+        await addTemplate(template);
+        setShowImportDialog(false);
+        setImportErrors([]);
+        delete (window as any).__pendingCSV;
+        alert(`✅ Template "${template.name}" imported successfully with ${template.blocks.length} time blocks!`);
+      }
+    } catch (error) {
+      alert('Failed to import template: ' + (error instanceof Error ? error.message : String(error)));
+    }
+  };
+
+  const handleResetTemplates = async () => {
+    if (!confirm('⚠️ This will delete ALL templates and restore only the default Challenge Weekday template. This action cannot be undone. Continue?')) {
+      return;
+    }
+
+    try {
+      await resetTemplatesToDefault();
+      alert('✅ Templates reset to default successfully!');
+    } catch (error) {
+      alert('Failed to reset templates: ' + (error instanceof Error ? error.message : String(error)));
     }
   };
 
@@ -724,6 +809,15 @@ const SettingsView: React.FC = () => {
               
               <div className="flex gap-2">
                 <button
+                  onClick={() => handleExportTemplate(template.id)}
+                  className="flex items-center gap-1 px-3 py-1 bg-purple-500 text-white text-sm rounded-md hover:bg-purple-600 transition-colors"
+                  title="Export as CSV"
+                >
+                  <FileDown className="w-4 h-4" />
+                  Export
+                </button>
+                
+                <button
                   onClick={() => {
                     setEditingTemplateId(template.id);
                     setShowTemplateEditor(true);
@@ -752,17 +846,44 @@ const SettingsView: React.FC = () => {
           ))}
         </div>
         
-        {/* Create New Template Button */}
-        <button
-          onClick={() => {
-            setEditingTemplateId(null);
-            setShowTemplateEditor(true);
-          }}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-        >
-          <Plus className="w-5 h-5" />
-          Create New Template
-        </button>
+        {/* Template Management Buttons */}
+        <div className="grid grid-cols-1 gap-2">
+          <button
+            onClick={() => {
+              setEditingTemplateId(null);
+              setShowTemplateEditor(true);
+            }}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            Create New Template
+          </button>
+          
+          <button
+            onClick={handleImportClick}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            <Upload className="w-5 h-5" />
+            Import from CSV
+          </button>
+          
+          <button
+            onClick={handleResetTemplates}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+          >
+            <RotateCcw className="w-5 h-5" />
+            Reset to Default
+          </button>
+        </div>
+        
+        {/* Hidden file input for CSV import */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
       </div>
 
       {/* PWA Installation */}
@@ -819,6 +940,63 @@ const SettingsView: React.FC = () => {
             setEditingTemplateId(null);
           }}
         />
+      )}
+
+      {/* Import Template Dialog */}
+      {showImportDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
+              Import Template from CSV
+            </h3>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Template Name
+              </label>
+              <input
+                type="text"
+                value={importTemplateName}
+                onChange={(e) => setImportTemplateName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+                placeholder="My Custom Template"
+              />
+            </div>
+
+            {importErrors.length > 0 && (
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <p className="text-sm font-medium text-red-800 dark:text-red-200 mb-2">
+                  Import Errors:
+                </p>
+                <ul className="text-xs text-red-700 dark:text-red-300 space-y-1 list-disc list-inside">
+                  {importErrors.map((error, i) => (
+                    <li key={i}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowImportDialog(false);
+                  setImportErrors([]);
+                  delete (window as any).__pendingCSV;
+                }}
+                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmImport}
+                disabled={!importTemplateName.trim()}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Import
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
