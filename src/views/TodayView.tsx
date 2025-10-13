@@ -67,6 +67,7 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string;
 
   return (
     <div
+      id={`block-${block.id}`}
       className={cn(
         'p-4 rounded-lg shadow-sm mb-3 border-l-4',
         getStatusColor(),
@@ -238,15 +239,61 @@ const TodayView: React.FC = () => {
   const today = getCurrentDateString();
   const [viewDate, setViewDate] = useState(today);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [shouldScrollToCurrent, setShouldScrollToCurrent] = useState(false);
 
   useEffect(() => {
     console.log('🏠 TodayView: COMPONENT MOUNTED - Loading date:', viewDate);
     loadScheduleForDate(viewDate);
+    
+    // Trigger scroll to current block when loading today's schedule
+    if (viewDate === today) {
+      setShouldScrollToCurrent(true);
+    }
 
     return () => {
       console.log('🏠 TodayView: COMPONENT UNMOUNTED');
     };
-  }, [viewDate, loadScheduleForDate]); // Reload when viewDate changes
+  }, [viewDate, loadScheduleForDate, today]); // Reload when viewDate changes
+
+  // Listen for service worker messages (notification clicks)
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'NOTIFICATION_CLICKED' && event.data?.action === 'refresh-and-scroll') {
+        console.log('🔔 Notification clicked - refreshing and scrolling');
+        // Reload today's schedule
+        loadScheduleForDate(today);
+        // Trigger scroll after data loads
+        setShouldScrollToCurrent(true);
+      }
+    };
+
+    navigator.serviceWorker?.addEventListener('message', handleMessage);
+    
+    return () => {
+      navigator.serviceWorker?.removeEventListener('message', handleMessage);
+    };
+  }, [loadScheduleForDate, today]);
+
+  // Scroll to current timeblock when schedule loads or when triggered
+  useEffect(() => {
+    if (shouldScrollToCurrent && currentSchedule && viewDate === today) {
+      const now = new Date();
+      const currentBlock = currentSchedule.blocks.find(block => 
+        now >= block.start && now <= block.end
+      );
+      
+      if (currentBlock) {
+        // Find the DOM element for this block
+        const blockElement = document.getElementById(`block-${currentBlock.id}`);
+        if (blockElement) {
+          blockElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          console.log('📍 Scrolled to current block:', currentBlock.title);
+        }
+      }
+      
+      setShouldScrollToCurrent(false);
+    }
+  }, [currentSchedule, shouldScrollToCurrent, viewDate, today]);
 
   // Reset to today when correction mode is disabled
   useEffect(() => {

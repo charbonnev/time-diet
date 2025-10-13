@@ -66,10 +66,15 @@ self.addEventListener('notificationclick', function(event) {
   // Open or focus the app
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {
-      // If app is already open, focus it
+      // If app is already open, focus it and send refresh message
       for (let i = 0; i < clientList.length; i++) {
         const client = clientList[i];
         if (client.url.includes(self.location.origin) && 'focus' in client) {
+          // Send message to app to refresh and scroll
+          client.postMessage({
+            type: 'NOTIFICATION_CLICKED',
+            action: 'refresh-and-scroll'
+          });
           return client.focus();
         }
       }

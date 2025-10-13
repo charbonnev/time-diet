@@ -121,8 +121,8 @@ const CalendarView: React.FC = () => {
       case 'good': return 'bg-blue-500';
       case 'fair': return 'bg-yellow-500';
       case 'poor': return 'bg-red-500';
-      case 'scheduled': return 'bg-gray-300';
-      default: return 'bg-gray-100';
+      case 'scheduled': return 'bg-gray-400 dark:bg-gray-600';
+      default: return 'bg-gray-200 dark:bg-blue-900/40';
     }
   };
 
