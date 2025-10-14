@@ -4,7 +4,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { useTheme } from '@/components/ThemeProvider';
 import { pushNotificationManager } from '@/utils/pushNotifications';
-import { Bell, Clock, Download, Check, Server, RefreshCw, Moon, Sun, FileText, Plus, Edit2, Trash2, Upload, FileDown, RotateCcw } from 'lucide-react';
+import { Bell, Clock, Download, Check, Server, Moon, Sun, FileText, Plus, Edit2, Trash2, Upload, FileDown, RotateCcw } from 'lucide-react';
 import packageJson from '../../package.json';
 import TemplateEditor from '@/components/TemplateEditor';
 
@@ -133,57 +133,6 @@ const SettingsView: React.FC = () => {
 
   const handleSoundProfileChange = async (profile: 'default' | 'silent' | 'vibrate') => {
     await updateSettings({ soundProfile: profile });
-  };
-
-  const handleRefreshSubscription = async () => {
-    console.log('🔄 Refreshing push subscription...');
-    
-    try {
-      // First clear any scheduled notifications to avoid orphaned notifications
-      console.log('🔄 Clearing scheduled notifications before refresh...');
-      await pushNotificationManager.clearScheduledNotifications();
-      
-      // First unsubscribe from any existing subscription
-      const unsubscribed = await pushNotificationManager.unsubscribe();
-      console.log('🔄 Unsubscribed from existing subscription:', unsubscribed);
-      
-      // Wait a moment for the unsubscription to process
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Create a fresh subscription
-      const subscriptionData = await pushNotificationManager.subscribe();
-      
-      if (subscriptionData) {
-        console.log('🔄 Fresh subscription created successfully!');
-        
-        // Trigger a re-schedule of notifications with the new subscription
-        console.log('🔄 Triggering notification rescheduling...');
-        const { currentSchedule, settings } = useAppStore.getState();
-        if (settings.notificationsEnabled && currentSchedule) {
-          // Import the notification functions
-          const { scheduleBlockNotifications, scheduleNotificationsPush } = await import('@/utils/notifications');
-          
-          // Generate and schedule notifications with the new subscription
-          const notifications = scheduleBlockNotifications(
-            currentSchedule.blocks,
-            settings.earlyWarningMinutes
-          );
-          
-          if (notifications.length > 0) {
-            const success = await scheduleNotificationsPush(notifications);
-            console.log('🔄 Rescheduled notifications with new subscription:', success);
-          }
-        }
-        
-        alert('✅ Push subscription refreshed successfully! All scheduled notifications have been updated with the new subscription.');
-      } else {
-        console.error('🔄 Failed to create fresh subscription');
-        alert('❌ Failed to refresh push subscription. Check console for details.');
-      }
-    } catch (error) {
-      console.error('🔄 Error refreshing subscription:', error);
-      alert('❌ Error refreshing subscription: ' + (error instanceof Error ? error.message : String(error)));
-    }
   };
 
   const handleTestNotification = async () => {
@@ -699,13 +648,6 @@ const SettingsView: React.FC = () => {
                     Test Push Server
                   </button>
                   <button
-                    onClick={handleRefreshSubscription}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-gray-600 dark:bg-gray-700 text-white text-sm rounded-md hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    Refresh Subscription
-                  </button>
-                  <button
                     onClick={handleBulkSchedulingTest}
                     className="flex items-center gap-2 px-3 py-1.5 bg-gray-600 dark:bg-gray-700 text-white text-sm rounded-md hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
                   >
@@ -714,7 +656,7 @@ const SettingsView: React.FC = () => {
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  "Test Now" = Local notification • "Test in 10s" = Background test • "Test Push Server" = Railway server (works when app is closed) • "Refresh Subscription" = Fix stale push subscriptions • "Test Bulk Scheduling" = Test the new system that schedules multiple notifications
+                  "Test Now" = Local notification • "Test in 10s" = Background test • "Test Push Server" = Railway server (works when app is closed) • "Test Bulk Scheduling" = Test the new system that schedules multiple notifications • Toggle notifications off/on to refresh subscription
                 </p>
               </div>
             )}

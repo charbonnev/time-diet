@@ -261,7 +261,7 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string;
 };
 
 const TodayView: React.FC = () => {
-  const { currentSchedule, categories, loadScheduleForDate, templates, applyTemplateToDate, settings, clearDaySchedule, updateBlockStatus } = useAppStore();
+  const { currentSchedule, categories, loadScheduleForDate, templates, applyTemplateToDate, settings, clearDaySchedule, updateBlockStatus, snoozeBlock } = useAppStore();
   const today = getCurrentDateString();
   const [viewDate, setViewDate] = useState(today);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -315,10 +315,11 @@ const TodayView: React.FC = () => {
       
       if (type === 'SNOOZE_NOTIFICATION' && blockId && date && snoozeMinutes) {
         console.log('🔔 Snooze notification:', blockId, date, snoozeMinutes, 'minutes');
-        // Reschedule the notification
-        // This would require re-triggering the notification system
-        // For now, just log it
-        console.log('⏰ Notification snoozed for', snoozeMinutes, 'minutes');
+        // Load the schedule for that date
+        await loadScheduleForDate(date);
+        // Snooze the block
+        await snoozeBlock(blockId, snoozeMinutes);
+        console.log('⏰ Block snoozed for', snoozeMinutes, 'minutes');
       }
     };
 
@@ -327,7 +328,7 @@ const TodayView: React.FC = () => {
     return () => {
       navigator.serviceWorker?.removeEventListener('message', handleMessage);
     };
-  }, [loadScheduleForDate, updateBlockStatus, today]);
+  }, [loadScheduleForDate, updateBlockStatus, snoozeBlock, today]);
 
   // Scroll to current or most recent timeblock when schedule loads or when triggered
   useEffect(() => {
