@@ -68,20 +68,24 @@ export function useNotifications() {
       return;
     }
 
-    // Prevent duplicate scheduling
+    // Prevent duplicate scheduling - check BEFORE async function
     if (schedulingInProgress.current) {
       console.log('🔔 Scheduling already in progress, skipping...');
       return;
     }
 
-    // Check if we already scheduled for this date
-    if (lastScheduledDate.current === currentSchedule.date) {
-      console.log('🔔 Already scheduled for this date, skipping...');
+    // Create a unique key for this schedule state
+    const scheduleKey = `${currentSchedule.date}-${currentSchedule.blocks.length}-${settings.earlyWarningMinutes}`;
+    if (lastScheduledDate.current === scheduleKey) {
+      console.log('🔔 Already scheduled for this exact schedule state, skipping...');
       return;
     }
 
+    // Mark as in progress IMMEDIATELY
+    schedulingInProgress.current = true;
+    lastScheduledDate.current = scheduleKey;
+
     const scheduleNotificationsAsync = async () => {
-      schedulingInProgress.current = true;
       console.log('🔔 Starting notification scheduling for:', currentSchedule.date);
       // Clear existing notifications (both local and push)
       clearScheduledNotifications(timeoutIds.current);
@@ -111,7 +115,6 @@ export function useNotifications() {
       
       if (pushSuccess) {
         console.log('🔔 Successfully scheduled all notifications via push system');
-        lastScheduledDate.current = currentSchedule.date;
       } else {
         console.log('🔔 Push scheduling failed, falling back to local setTimeout');
         
@@ -121,10 +124,10 @@ export function useNotifications() {
         ).filter(id => id !== -1);
 
         timeoutIds.current = ids;
-        lastScheduledDate.current = currentSchedule.date;
       }
       
       schedulingInProgress.current = false;
+      console.log('🔔 Notification scheduling complete!');
     };
 
     scheduleNotificationsAsync();

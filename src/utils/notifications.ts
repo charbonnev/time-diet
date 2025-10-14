@@ -114,12 +114,13 @@ export function scheduleBlockNotifications(
       nextBlock: nextBlock?.title || 'none'
     });
 
-    if (isContiguous && earlyWarningMinutes > 0 && isFutureBlock) {
+    if (isContiguous && earlyWarningMinutes > 0) {
       // SMART-MERGE: Contiguous blocks with early warning enabled
       
       // Enhanced early warning: wrap up current block + preview next block
+      // Create this even for CURRENT blocks if the warning time hasn't passed yet
       const earlyWarningTime = addMinutes(block.end, -earlyWarningMinutes);
-      if (earlyWarningTime > now) {
+      if (earlyWarningTime > now && isFutureBlock) {
         const notification = {
           id: `block-wrap-${block.id}`,
           blockId: block.id, // Current block for Complete/Skip actions
@@ -132,12 +133,13 @@ export function scheduleBlockNotifications(
         };
         notifications.push(notification);
         console.log(`  ✅ Created WRAP-UP notification at ${format(earlyWarningTime, 'HH:mm')}:`, notification.title);
-      } else {
+      } else if (isFutureBlock) {
         console.log(`  ⏭️ Skipped WRAP-UP (time ${format(earlyWarningTime, 'HH:mm')} already passed)`);
       }
 
       // Start notification for next block (at transition moment)
-      if (nextBlock.start > now) {
+      // CRITICAL: Create this even if current block is running!
+      if (nextBlock && nextBlock.start > now) {
         const notification = {
           id: `block-start-${nextBlock.id}`,
           blockId: nextBlock.id,
@@ -151,6 +153,22 @@ export function scheduleBlockNotifications(
         console.log(`  ✅ Created START notification at ${format(nextBlock.start, 'HH:mm')}:`, notification.title);
       } else {
         console.log(`  ⏭️ Skipped START for next block (already started)`);
+      }
+    } else if (isContiguous && !isFutureBlock) {
+      // CURRENT BLOCK that's contiguous: Still need to schedule next block start!
+      console.log(`  📍 Current block - checking if we need to schedule next block start`);
+      if (nextBlock && nextBlock.start > now) {
+        const notification = {
+          id: `block-start-${nextBlock.id}`,
+          blockId: nextBlock.id,
+          scheduledTime: nextBlock.start,
+          title: `Time for: ${nextBlock.title}`,
+          body: `Starting now until ${format(nextBlock.end, 'HH:mm')}`,
+          date: date,
+          notificationType: 'block-start' as const
+        };
+        notifications.push(notification);
+        console.log(`  ✅ Created START notification for next block at ${format(nextBlock.start, 'HH:mm')}:`, notification.title);
       }
     } else if (!isContiguous && isFutureBlock) {
       // NON-CONTIGUOUS: Full set of notifications
