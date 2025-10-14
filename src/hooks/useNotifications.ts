@@ -24,6 +24,7 @@ export function useNotifications() {
   const lightsOutReminderShown = useRef(false);
   const lastScheduledDate = useRef<string | null>(null);
   const schedulingInProgress = useRef(false);
+  const lastScheduleTime = useRef<number>(0);
   
   const { 
     currentSchedule, 
@@ -81,9 +82,17 @@ export function useNotifications() {
       return;
     }
 
+    // Time-based debounce: prevent scheduling within 1 second of last schedule
+    const now = Date.now();
+    if (now - lastScheduleTime.current < 1000) {
+      console.log('🔔 Scheduling too soon after last schedule, skipping...');
+      return;
+    }
+
     // Mark as in progress IMMEDIATELY
     schedulingInProgress.current = true;
     lastScheduledDate.current = scheduleKey;
+    lastScheduleTime.current = now;
 
     const scheduleNotificationsAsync = async () => {
       console.log('🔔 Starting notification scheduling for:', currentSchedule.date);
