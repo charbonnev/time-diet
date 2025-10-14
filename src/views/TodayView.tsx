@@ -7,7 +7,7 @@ import { CheckCircle, XCircle, Clock, Edit, ChevronLeft, ChevronRight, ChevronDo
 import { getCurrentDateString } from '@/utils/time';
 import { scheduleTestNotification } from '@/utils/notifications';
 
-const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string; categoryName: string; date: string; debugMode: boolean }> = ({ block, categoryColor, categoryName, date, debugMode }) => {
+const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string; categoryName: string; date: string; debugMode: boolean; allBlocks: TimeBlockInstance[]; earlyWarningMinutes: number }> = ({ block, categoryColor, categoryName, date, debugMode, allBlocks, earlyWarningMinutes }) => {
   const { updateBlockStatus, updateBlockTitle, resetBlockStatus, snoozeBlock, updateBlockDescription } = useAppStore();
   const [isEditing, setIsEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(block.title);
@@ -170,19 +170,19 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string;
         <div className="mt-2 flex flex-wrap gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
           <p className="w-full text-xs font-semibold text-yellow-800 dark:text-yellow-300">Debug Test Notifications:</p>
           <button
-            onClick={() => scheduleTestNotification(block.id, block.title, date, 'early-warning', 30)}
+            onClick={() => scheduleTestNotification(block.id, allBlocks, date, 'early-warning', earlyWarningMinutes, 30)}
             className="flex items-center gap-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
           >
             📅 Early Warning (30s)
           </button>
           <button
-            onClick={() => scheduleTestNotification(block.id, block.title, date, 'block-start', 30)}
+            onClick={() => scheduleTestNotification(block.id, allBlocks, date, 'block-start', earlyWarningMinutes, 30)}
             className="flex items-center gap-1 px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
           >
             🔔 Block Start (30s)
           </button>
           <button
-            onClick={() => scheduleTestNotification(block.id, block.title, date, 'block-end', 30)}
+            onClick={() => scheduleTestNotification(block.id, allBlocks, date, 'block-end', earlyWarningMinutes, 30)}
             className="flex items-center gap-1 px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600 transition-colors"
           >
             ✅ Block End (30s)
@@ -570,6 +570,8 @@ const TodayView: React.FC = () => {
               categoryName={categoryInfo.name}
               date={viewDate}
               debugMode={settings.debugMode}
+              allBlocks={currentSchedule.blocks}
+              earlyWarningMinutes={settings.earlyWarningMinutes}
             />
           );
         })}

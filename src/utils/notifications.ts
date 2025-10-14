@@ -353,50 +353,95 @@ export function showLightsOutReminder(): void {
 
 /**
  * Schedule a test notification for debugging
- * This uses the REAL notification system with proper action buttons
+ * This uses the REAL Smart-Merge notification logic to generate accurate test notifications
  */
 export async function scheduleTestNotification(
   blockId: string,
-  blockTitle: string,
+  blocks: TimeBlockInstance[],
   date: string,
   notificationType: 'early-warning' | 'block-start' | 'block-end',
+  earlyWarningMinutes: number,
   delaySeconds: number = 30
 ): Promise<boolean> {
   try {
-    const scheduledTime = new Date(Date.now() + delaySeconds * 1000);
-    
-    let title = '';
-    let body = '';
-    
-    if (notificationType === 'early-warning') {
-      title = `Wrap up: ${blockTitle}`;
-      body = `Test early warning notification`;
-    } else if (notificationType === 'block-start') {
-      title = `Time for: ${blockTitle}`;
-      body = `Test block start notification`;
-    } else if (notificationType === 'block-end') {
-      title = `How did it go?`;
-      body = `${blockTitle} - Test end notification`;
+    // Find the block index
+    const blockIndex = blocks.findIndex(b => b.id === blockId);
+    if (blockIndex === -1) {
+      console.error('Block not found:', blockId);
+      return false;
     }
     
-    const notification: NotificationQueue = {
-      id: `test-${notificationType}-${blockId}-${Date.now()}`,
-      blockId,
-      scheduledTime,
-      title,
-      body,
-      date,
-      notificationType,
-      isEarlyWarning: notificationType === 'early-warning'
-    };
+    const block = blocks[blockIndex];
+    const nextBlock = blockIndex < blocks.length - 1 ? blocks[blockIndex + 1] : null;
     
-    console.log(`🔔 Scheduling test ${notificationType} notification in ${delaySeconds}s:`, notification);
+    // Generate the REAL notification using Smart-Merge logic
+    let notification: NotificationQueue | null = null;
+    
+    if (notificationType === 'early-warning') {
+      // Check if this block is contiguous with the next block
+      const isContiguousWithNext = nextBlock && block.end.getTime() === nextBlock.start.getTime();
+      
+      if (isContiguousWithNext && earlyWarningMinutes > 0) {
+        // SMART-MERGE: Wrap up current block + preview next block
+        notification = {
+          id: `test-early-warning-${blockId}-${Date.now()}`,
+          blockId: block.id,
+          scheduledTime: new Date(Date.now() + delaySeconds * 1000),
+          title: `Wrap up: ${block.title}`,
+          body: `Next: ${nextBlock!.title} in ${earlyWarningMinutes} minutes`,
+          isEarlyWarning: true,
+          date,
+          notificationType: 'early-warning'
+        };
+      } else {
+        // NON-CONTIGUOUS: Standard early warning
+        notification = {
+          id: `test-early-warning-${blockId}-${Date.now()}`,
+          blockId: block.id,
+          scheduledTime: new Date(Date.now() + delaySeconds * 1000),
+          title: `Coming up: ${block.title}`,
+          body: `Starting in ${earlyWarningMinutes} minutes`,
+          isEarlyWarning: true,
+          date,
+          notificationType: 'early-warning'
+        };
+      }
+    } else if (notificationType === 'block-start') {
+      // Block start notification
+      notification = {
+        id: `test-block-start-${blockId}-${Date.now()}`,
+        blockId: block.id,
+        scheduledTime: new Date(Date.now() + delaySeconds * 1000),
+        title: `Time for: ${block.title}`,
+        body: `Starting now until ${format(block.end, 'HH:mm')}`,
+        date,
+        notificationType: 'block-start'
+      };
+    } else if (notificationType === 'block-end') {
+      // Block end notification (for non-contiguous blocks)
+      notification = {
+        id: `test-block-end-${blockId}-${Date.now()}`,
+        blockId: block.id,
+        scheduledTime: new Date(Date.now() + delaySeconds * 1000),
+        title: `How did it go?`,
+        body: `${block.title} - Mark as complete or skipped`,
+        date,
+        notificationType: 'block-end'
+      };
+    }
+    
+    if (!notification) {
+      console.error('Failed to generate test notification');
+      return false;
+    }
+    
+    console.log(`🔔 Scheduling SMART test ${notificationType} notification in ${delaySeconds}s:`, notification);
     
     // Schedule via push notification system
     const success = await scheduleNotificationsPush([notification]);
     
     if (success) {
-      console.log(`✅ Test notification scheduled successfully`);
+      console.log(`✅ Test notification scheduled successfully with Smart-Merge logic`);
     } else {
       console.error(`❌ Failed to schedule test notification`);
     }
