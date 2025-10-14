@@ -1,22 +1,42 @@
 import { useEffect, useRef } from 'react';
 import { useAppStore } from '@/store';
 import {
-  requestNotificationPermission,
-  scheduleBlockNotifications,
-  scheduleNotificationsPush,
   scheduleNotification,
   clearScheduledNotifications,
-  clearScheduledPushNotifications,
+  scheduleBlockNotifications,
   shouldShowChecklistReminder,
   shouldShowLightsOutReminder,
-  showChecklistReminder,
-  showLightsOutReminder,
-  updatePersistentCurrentBlock,
+  markChecklistReminderShown,
+  markLightsOutReminderShown,
+  scheduleNotificationsPush,
+  clearScheduledPushNotifications,
   clearPersistentCurrentBlock
 } from '@/utils/notifications';
 import { pushNotificationManager } from '@/utils/pushNotifications';
 import { getCurrentDateString } from '@/utils/time';
 import { differenceInMinutes } from 'date-fns';
+
+/**
+ * Standalone function to request notification permission
+ * Can be used without the full useNotifications hook
+ */
+export async function requestNotificationPermission(): Promise<NotificationPermission> {
+  if (!('Notification' in window)) {
+    console.warn('This browser does not support notifications');
+    return 'denied';
+  }
+
+  if (Notification.permission === 'granted') {
+    return 'granted';
+  }
+
+  if (Notification.permission === 'denied') {
+    return 'denied';
+  }
+
+  const permission = await Notification.requestPermission();
+  return permission;
+}
 
 export function useNotifications() {
   const timeoutIds = useRef<number[]>([]);

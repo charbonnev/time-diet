@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppStore } from '@/store';
-import { useNotifications } from '@/hooks/useNotifications';
+import { requestNotificationPermission } from '@/hooks/useNotifications';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { useTheme } from '@/components/ThemeProvider';
 import { pushNotificationManager } from '@/utils/pushNotifications';
@@ -10,7 +10,6 @@ import TemplateEditor from '@/components/TemplateEditor';
 
 const SettingsView: React.FC = () => {
   const { settings, updateSettings, templates, removeTemplate, categories, addTemplate, updateTemplate, resetTemplatesToDefault, notificationQueue } = useAppStore();
-  const { requestPermission } = useNotifications();
   const { isInstallable, isInstalled, installApp } = usePWAInstall();
   const { theme, toggleTheme } = useTheme();
   const [showTemplateEditor, setShowTemplateEditor] = React.useState(false);
@@ -115,7 +114,7 @@ const SettingsView: React.FC = () => {
     const newValue = !settings.notificationsEnabled;
     
     if (newValue) {
-      const permission = await requestPermission();
+      const permission = await requestNotificationPermission();
       if (permission === 'granted') {
         await updateSettings({ notificationsEnabled: true });
       } else {
