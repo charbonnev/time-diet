@@ -80,21 +80,39 @@ export async function showNotification(title: string, options?: NotificationOpti
  */
 export function scheduleBlockNotifications(
   blocks: TimeBlockInstance[],
-  earlyWarningMinutes: number = 0,
+  earlyWarningMinutes: number,
   date?: string
 ): NotificationQueue[] {
-  const notifications: NotificationQueue[] = [];
   const now = new Date();
+  const notifications: NotificationQueue[] = [];
+
+  console.log('📅 scheduleBlockNotifications called:', {
+    blockCount: blocks.length,
+    earlyWarningMinutes,
+    date,
+    currentTime: format(now, 'HH:mm:ss')
+  });
 
   blocks.forEach((block, index) => {
     // Skip past blocks
-    if (block.end <= now) return;
+    if (block.end <= now) {
+      console.log(`⏭️ Skipping past block: ${block.title} (ended at ${format(block.end, 'HH:mm')})`);
+      return;
+    }
 
     const nextBlock = blocks[index + 1];
     const isContiguous = nextBlock && block.end.getTime() === nextBlock.start.getTime();
 
     // Check if this is a future block (not currently running)
     const isFutureBlock = block.start > now;
+    
+    console.log(`🔍 Processing block: ${block.title}`, {
+      start: format(block.start, 'HH:mm'),
+      end: format(block.end, 'HH:mm'),
+      isFutureBlock,
+      isContiguous,
+      nextBlock: nextBlock?.title || 'none'
+    });
 
     if (isContiguous && earlyWarningMinutes > 0 && isFutureBlock) {
       // SMART-MERGE: Contiguous blocks with early warning enabled
@@ -102,7 +120,7 @@ export function scheduleBlockNotifications(
       // Enhanced early warning: wrap up current block + preview next block
       const earlyWarningTime = addMinutes(block.end, -earlyWarningMinutes);
       if (earlyWarningTime > now) {
-        notifications.push({
+        const notification = {
           id: `block-wrap-${block.id}`,
           blockId: block.id, // Current block for Complete/Skip actions
           scheduledTime: earlyWarningTime,
@@ -110,21 +128,29 @@ export function scheduleBlockNotifications(
           body: `Next: ${nextBlock.title} in ${earlyWarningMinutes} minutes`,
           isEarlyWarning: true,
           date: date,
-          notificationType: 'early-warning'
-        });
+          notificationType: 'early-warning' as const
+        };
+        notifications.push(notification);
+        console.log(`  ✅ Created WRAP-UP notification at ${format(earlyWarningTime, 'HH:mm')}:`, notification.title);
+      } else {
+        console.log(`  ⏭️ Skipped WRAP-UP (time ${format(earlyWarningTime, 'HH:mm')} already passed)`);
       }
 
       // Start notification for next block (at transition moment)
       if (nextBlock.start > now) {
-        notifications.push({
+        const notification = {
           id: `block-start-${nextBlock.id}`,
           blockId: nextBlock.id,
           scheduledTime: nextBlock.start,
           title: `Time for: ${nextBlock.title}`,
           body: `Starting now until ${format(nextBlock.end, 'HH:mm')}`,
           date: date,
-          notificationType: 'block-start'
-        });
+          notificationType: 'block-start' as const
+        };
+        notifications.push(notification);
+        console.log(`  ✅ Created START notification at ${format(nextBlock.start, 'HH:mm')}:`, notification.title);
+      } else {
+        console.log(`  ⏭️ Skipped START for next block (already started)`);
       }
     } else if (!isContiguous && isFutureBlock) {
       // NON-CONTIGUOUS: Full set of notifications
@@ -185,6 +211,11 @@ export function scheduleBlockNotifications(
         });
       }
     }
+  });
+
+  console.log(`📊 Total notifications created: ${notifications.length}`);
+  notifications.forEach(n => {
+    console.log(`  📅 ${format(n.scheduledTime, 'HH:mm')} - ${n.title} (${n.notificationType})`);
   });
 
   return notifications;

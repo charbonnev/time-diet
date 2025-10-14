@@ -22,6 +22,8 @@ export function useNotifications() {
   const timeoutIds = useRef<number[]>([]);
   const checklistReminderShown = useRef(false);
   const lightsOutReminderShown = useRef(false);
+  const lastScheduledDate = useRef<string | null>(null);
+  const schedulingInProgress = useRef(false);
   
   const { 
     currentSchedule, 
@@ -66,7 +68,21 @@ export function useNotifications() {
       return;
     }
 
+    // Prevent duplicate scheduling
+    if (schedulingInProgress.current) {
+      console.log('🔔 Scheduling already in progress, skipping...');
+      return;
+    }
+
+    // Check if we already scheduled for this date
+    if (lastScheduledDate.current === currentSchedule.date) {
+      console.log('🔔 Already scheduled for this date, skipping...');
+      return;
+    }
+
     const scheduleNotificationsAsync = async () => {
+      schedulingInProgress.current = true;
+      console.log('🔔 Starting notification scheduling for:', currentSchedule.date);
       // Clear existing notifications (both local and push)
       clearScheduledNotifications(timeoutIds.current);
       timeoutIds.current = [];
@@ -95,6 +111,7 @@ export function useNotifications() {
       
       if (pushSuccess) {
         console.log('🔔 Successfully scheduled all notifications via push system');
+        lastScheduledDate.current = currentSchedule.date;
       } else {
         console.log('🔔 Push scheduling failed, falling back to local setTimeout');
         
@@ -104,7 +121,10 @@ export function useNotifications() {
         ).filter(id => id !== -1);
 
         timeoutIds.current = ids;
+        lastScheduledDate.current = currentSchedule.date;
       }
+      
+      schedulingInProgress.current = false;
     };
 
     scheduleNotificationsAsync();
@@ -114,6 +134,8 @@ export function useNotifications() {
       clearScheduledPushNotifications();
       const { clearNotifications } = useAppStore.getState();
       clearNotifications();
+      lastScheduledDate.current = null; // Reset so we can reschedule
+      schedulingInProgress.current = false;
     };
   }, [currentSchedule, settings.notificationsEnabled, settings.earlyWarningMinutes]);
 
