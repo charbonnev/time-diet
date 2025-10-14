@@ -97,7 +97,8 @@ export function createDefaultSettings(): Settings {
     computeCategoryPoints: true,
     correctionMode: false,
     darkMode: false,
-    debugMode: false
+    debugMode: false,
+    persistentCurrentBlock: false
   };
 }
 

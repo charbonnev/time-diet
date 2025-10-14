@@ -453,3 +453,74 @@ export async function scheduleTestNotification(
   }
 }
 
+/**
+ * Persistent Current Block Notification
+ * Shows a sticky notification for the active time block
+ */
+
+const PERSISTENT_NOTIFICATION_TAG = 'time-diet-current-block';
+
+export async function showPersistentCurrentBlock(
+  block: TimeBlockInstance,
+  timeRemaining: string
+): Promise<void> {
+  try {
+    if (!isNotificationSupported() || Notification.permission !== 'granted') {
+      return;
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+    
+    // Close any existing persistent notification first
+    const notifications = await registration.getNotifications({ tag: PERSISTENT_NOTIFICATION_TAG });
+    notifications.forEach(n => n.close());
+    
+    // Show new persistent notification
+    await registration.showNotification(`⏰ ${block.title}`, {
+      body: `Time remaining: ${timeRemaining}`,
+      tag: PERSISTENT_NOTIFICATION_TAG,
+      icon: '/pwa-192x192.png',
+      badge: '/pwa-192x192.png',
+      requireInteraction: true, // Makes it persistent (won't auto-dismiss)
+      silent: true, // No sound for updates
+      data: {
+        blockId: block.id,
+        date: format(block.start, 'yyyy-MM-dd'),
+        type: 'PERSISTENT_CURRENT_BLOCK'
+      },
+      actions: [
+        { action: 'complete', title: '✓ Complete' },
+        { action: 'open', title: 'Open App' }
+      ]
+    } as any); // TypeScript types are outdated for notification actions
+    
+    console.log('📌 Persistent notification shown:', block.title, timeRemaining);
+  } catch (error) {
+    console.error('Error showing persistent notification:', error);
+  }
+}
+
+export async function updatePersistentCurrentBlock(
+  block: TimeBlockInstance,
+  timeRemaining: string
+): Promise<void> {
+  // Simply show a new notification with the same tag (replaces the old one)
+  await showPersistentCurrentBlock(block, timeRemaining);
+}
+
+export async function clearPersistentCurrentBlock(): Promise<void> {
+  try {
+    if (!isNotificationSupported()) {
+      return;
+    }
+
+    const registration = await navigator.serviceWorker.ready;
+    const notifications = await registration.getNotifications({ tag: PERSISTENT_NOTIFICATION_TAG });
+    notifications.forEach(n => n.close());
+    
+    console.log('📌 Persistent notification cleared');
+  } catch (error) {
+    console.error('Error clearing persistent notification:', error);
+  }
+}
+

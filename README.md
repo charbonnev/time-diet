@@ -1,6 +1,6 @@
 # Time Diet - Structured Routine Manager
 
-**Version 1.5.4** | **Live at**: [time-diet.vercel.app](https://time-diet.vercel.app)
+**Version 1.6.0** | **Live at**: [time-diet.vercel.app](https://time-diet.vercel.app)
 
 A comprehensive Progressive Web App (PWA) for managing time blocks, tracking daily routines, and building productive habits with ADHD-friendly features.
 
@@ -34,6 +34,42 @@ A comprehensive Progressive Web App (PWA) for managing time blocks, tracking dai
 - **Structured Routine**: Consistent daily schedule to build habits
 
 ## 📋 Changelog
+
+### Version 1.6.0 (2025-01-14)
+**🎯 MAJOR ADHD FEATURE: Persistent Current Block Notification**
+
+**The Ultimate Doomscroll Defense:**
+- 📢 **Sticky notification** showing your current active timeblock
+- ⏰ **Time remaining** updates every minute
+- 🔒 **Always visible** - can't be swiped away (Android)
+- 📱 **Lock screen display** - see it even when phone is locked
+- 🧠 **External working memory** - constant reminder of your intention
+
+**Perfect for ADHD:**
+- Pull down notifications → see "Deep Work - 35m left" → snap back to focus!
+- No need to remember what you should be doing
+- Visual anchor to prevent doomscrolling blackholes
+- Maintains time awareness throughout the day
+
+**How It Works:**
+- Enable in Settings: "Persistent Current Block"
+- Automatically shows when a block starts
+- Updates time remaining every minute
+- Clears when block ends or is completed
+- Action buttons: Complete or Open App
+
+**Platform Support:**
+- ✅ **Android**: Perfect! Shows on lock screen + notification shade
+- ✅ **Desktop**: Shows in notification center/system tray
+- ⚠️ **iOS**: Limited (Apple restrictions)
+
+**Technical Implementation:**
+- Uses `requireInteraction: true` for persistence
+- Silent updates (no sound/vibration)
+- Unique tag prevents duplicates
+- Integrates with existing notification actions
+
+**Result:** A game-changing ADHD tool that keeps you anchored to your schedule!
 
 ### Version 1.5.4 (2025-01-14)
 **🎯 MAJOR IMPROVEMENT: Smart Debug Test Buttons**

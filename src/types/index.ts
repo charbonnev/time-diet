@@ -69,6 +69,7 @@ export interface Settings {
   correctionMode: boolean; // Allows browsing/editing past dates
   darkMode: boolean; // Dark mode toggle
   debugMode: boolean; // Show debug test buttons for notifications
+  persistentCurrentBlock: boolean; // Show persistent notification for current active block
 }
 
 export interface ModeState {

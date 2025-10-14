@@ -734,6 +734,28 @@ const SettingsView: React.FC = () => {
           </button>
         </div>
 
+        {/* Persistent Current Block */}
+        {settings.notificationsEnabled && (
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-gray-700 dark:text-gray-300">Persistent Current Block</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Show sticky notification for active timeblock (ADHD anchor)</p>
+            </div>
+            <button
+              onClick={() => updateSettings({ persistentCurrentBlock: !settings.persistentCurrentBlock })}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${
+                settings.persistentCurrentBlock ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  settings.persistentCurrentBlock ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        )}
+
         {/* Debug Mode */}
         <div className="flex items-center justify-between">
           <div>

@@ -10,10 +10,13 @@ import {
   shouldShowChecklistReminder,
   shouldShowLightsOutReminder,
   showChecklistReminder,
-  showLightsOutReminder
+  showLightsOutReminder,
+  updatePersistentCurrentBlock,
+  clearPersistentCurrentBlock
 } from '@/utils/notifications';
 import { pushNotificationManager } from '@/utils/pushNotifications';
 import { getCurrentDateString } from '@/utils/time';
+import { differenceInMinutes } from 'date-fns';
 
 export function useNotifications() {
   const timeoutIds = useRef<number[]>([]);
@@ -156,6 +159,55 @@ export function useNotifications() {
     return () => clearInterval(interval);
   }, []);
 
+  // Manage persistent current block notification
+  useEffect(() => {
+    if (!settings.notificationsEnabled || !settings.persistentCurrentBlock || !currentSchedule) {
+      // Clear persistent notification if feature is disabled
+      clearPersistentCurrentBlock();
+      return;
+    }
+
+    const today = getCurrentDateString();
+    if (currentSchedule.date !== today) {
+      // Only show for today's schedule
+      return;
+    }
+
+    const updatePersistent = () => {
+      const now = new Date();
+      
+      // Find current active block
+      const currentBlock = currentSchedule.blocks.find(block => 
+        now >= block.start && now <= block.end
+      );
+
+      if (currentBlock) {
+        // Calculate time remaining
+        const minutesRemaining = differenceInMinutes(currentBlock.end, now);
+        const timeRemaining = minutesRemaining >= 60 
+          ? `${Math.floor(minutesRemaining / 60)}h ${minutesRemaining % 60}m`
+          : `${minutesRemaining}m`;
+        
+        // Show/update persistent notification
+        updatePersistentCurrentBlock(currentBlock, timeRemaining);
+      } else {
+        // No active block, clear persistent notification
+        clearPersistentCurrentBlock();
+      }
+    };
+
+    // Update immediately
+    updatePersistent();
+
+    // Update every minute
+    const interval = setInterval(updatePersistent, 60000);
+
+    return () => {
+      clearInterval(interval);
+      clearPersistentCurrentBlock();
+    };
+  }, [currentSchedule, settings.notificationsEnabled, settings.persistentCurrentBlock]);
+
   return {
     requestPermission: requestNotificationPermission,
     clearAll: async () => {
@@ -163,6 +215,7 @@ export function useNotifications() {
       await clearScheduledPushNotifications();
       const { clearNotifications } = useAppStore.getState();
       clearNotifications();
+      await clearPersistentCurrentBlock();
     }
   };
 }
