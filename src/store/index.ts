@@ -425,9 +425,11 @@ export const useAppStore = create<AppState>()(
 
             const updatedBlocks = currentSchedule.blocks.map(block => {
               if (block.id === blockId) {
+                // Only shift start time - end time stays fixed
+                // This means late start = shorter block (realistic consequence)
+                // Avoids overlaps, gaps, and notification complexity
                 const newStart = new Date(block.start.getTime() + minutes * 60000);
-                const newEnd = new Date(block.end.getTime() + minutes * 60000);
-                return { ...block, start: newStart, end: newEnd };
+                return { ...block, start: newStart };
               }
               return block;
             });
