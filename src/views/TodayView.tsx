@@ -5,8 +5,9 @@ import { TimeBlockInstance } from '@/types';
 import { cn } from '@/lib/utils';
 import { CheckCircle, XCircle, Clock, Edit, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { getCurrentDateString } from '@/utils/time';
+import { scheduleTestNotification } from '@/utils/notifications';
 
-const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string; categoryName: string }> = ({ block, categoryColor, categoryName }) => {
+const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string; categoryName: string; date: string; debugMode: boolean }> = ({ block, categoryColor, categoryName, date, debugMode }) => {
   const { updateBlockStatus, updateBlockTitle, resetBlockStatus, snoozeBlock, updateBlockDescription } = useAppStore();
   const [isEditing, setIsEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(block.title);
@@ -163,6 +164,31 @@ const TimeBlockCard: React.FC<{ block: TimeBlockInstance; categoryColor: string;
           Edit
         </button>
       </div>
+
+      {/* Debug Test Buttons */}
+      {debugMode && (
+        <div className="mt-2 flex flex-wrap gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+          <p className="w-full text-xs font-semibold text-yellow-800 dark:text-yellow-300">Debug Test Notifications:</p>
+          <button
+            onClick={() => scheduleTestNotification(block.id, block.title, date, 'early-warning', 30)}
+            className="flex items-center gap-1 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+          >
+            📅 Early Warning (30s)
+          </button>
+          <button
+            onClick={() => scheduleTestNotification(block.id, block.title, date, 'block-start', 30)}
+            className="flex items-center gap-1 px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+          >
+            🔔 Block Start (30s)
+          </button>
+          <button
+            onClick={() => scheduleTestNotification(block.id, block.title, date, 'block-end', 30)}
+            className="flex items-center gap-1 px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600 transition-colors"
+          >
+            ✅ Block End (30s)
+          </button>
+        </div>
+      )}
       
       {/* Enhanced Edit Form */}
       {isEditing && (
@@ -527,6 +553,8 @@ const TodayView: React.FC = () => {
               block={block}
               categoryColor={categoryInfo.color}
               categoryName={categoryInfo.name}
+              date={viewDate}
+              debugMode={settings.debugMode}
             />
           );
         })}

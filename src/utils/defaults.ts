@@ -96,7 +96,8 @@ export function createDefaultSettings(): Settings {
     categoryColors: DEFAULT_CATEGORY_COLORS,
     computeCategoryPoints: true,
     correctionMode: false,
-    darkMode: false
+    darkMode: false,
+    debugMode: false
   };
 }
 

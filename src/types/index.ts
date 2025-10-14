@@ -68,6 +68,7 @@ export interface Settings {
   computeCategoryPoints: boolean;
   correctionMode: boolean; // Allows browsing/editing past dates
   darkMode: boolean; // Dark mode toggle
+  debugMode: boolean; // Show debug test buttons for notifications
 }
 
 export interface ModeState {

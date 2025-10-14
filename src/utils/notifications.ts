@@ -351,3 +351,60 @@ export function showLightsOutReminder(): void {
   }).catch(console.error);
 }
 
+/**
+ * Schedule a test notification for debugging
+ * This uses the REAL notification system with proper action buttons
+ */
+export async function scheduleTestNotification(
+  blockId: string,
+  blockTitle: string,
+  date: string,
+  notificationType: 'early-warning' | 'block-start' | 'block-end',
+  delaySeconds: number = 30
+): Promise<boolean> {
+  try {
+    const scheduledTime = new Date(Date.now() + delaySeconds * 1000);
+    
+    let title = '';
+    let body = '';
+    
+    if (notificationType === 'early-warning') {
+      title = `Wrap up: ${blockTitle}`;
+      body = `Test early warning notification`;
+    } else if (notificationType === 'block-start') {
+      title = `Time for: ${blockTitle}`;
+      body = `Test block start notification`;
+    } else if (notificationType === 'block-end') {
+      title = `How did it go?`;
+      body = `${blockTitle} - Test end notification`;
+    }
+    
+    const notification: NotificationQueue = {
+      id: `test-${notificationType}-${blockId}-${Date.now()}`,
+      blockId,
+      scheduledTime,
+      title,
+      body,
+      date,
+      notificationType,
+      isEarlyWarning: notificationType === 'early-warning'
+    };
+    
+    console.log(`🔔 Scheduling test ${notificationType} notification in ${delaySeconds}s:`, notification);
+    
+    // Schedule via push notification system
+    const success = await scheduleNotificationsPush([notification]);
+    
+    if (success) {
+      console.log(`✅ Test notification scheduled successfully`);
+    } else {
+      console.error(`❌ Failed to schedule test notification`);
+    }
+    
+    return success;
+  } catch (error) {
+    console.error('Error scheduling test notification:', error);
+    return false;
+  }
+}
+
