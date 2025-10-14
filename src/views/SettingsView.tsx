@@ -9,7 +9,7 @@ import packageJson from '../../package.json';
 import TemplateEditor from '@/components/TemplateEditor';
 
 const SettingsView: React.FC = () => {
-  const { settings, updateSettings, templates, removeTemplate, categories, addTemplate, updateTemplate, resetTemplatesToDefault } = useAppStore();
+  const { settings, updateSettings, templates, removeTemplate, categories, addTemplate, updateTemplate, resetTemplatesToDefault, notificationQueue } = useAppStore();
   const { requestPermission } = useNotifications();
   const { isInstallable, isInstalled, installApp } = usePWAInstall();
   const { theme, toggleTheme } = useTheme();
@@ -775,6 +775,34 @@ const SettingsView: React.FC = () => {
             />
           </button>
         </div>
+
+        {/* View Scheduled Notifications (Debug) */}
+        {settings.debugMode && (
+          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">
+              📅 Scheduled Notifications ({notificationQueue.length})
+            </h4>
+            <div className="max-h-60 overflow-y-auto space-y-2">
+              {notificationQueue.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">No notifications scheduled</p>
+              ) : (
+                notificationQueue
+                  .sort((a, b) => new Date(a.scheduledTime).getTime() - new Date(b.scheduledTime).getTime())
+                  .map((notif) => (
+                    <div key={notif.id} className="text-xs bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-600">
+                      <div className="font-medium text-gray-800 dark:text-gray-200">
+                        {new Date(notif.scheduledTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - {notif.title}
+                      </div>
+                      <div className="text-gray-600 dark:text-gray-400">{notif.body}</div>
+                      <div className="text-gray-500 dark:text-gray-500 mt-1">
+                        Type: {notif.notificationType || 'default'}
+                      </div>
+                    </div>
+                  ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Templates Section */}
