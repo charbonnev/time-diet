@@ -329,21 +329,35 @@ const TodayView: React.FC = () => {
     };
   }, [loadScheduleForDate, updateBlockStatus, today]);
 
-  // Scroll to current timeblock when schedule loads or when triggered
+  // Scroll to current or most recent timeblock when schedule loads or when triggered
   useEffect(() => {
     if (shouldScrollToCurrent && currentSchedule && viewDate === today) {
       const now = new Date();
+      
+      // Case 4: Find current block (if we're in one)
       const currentBlock = currentSchedule.blocks.find(block => 
         now >= block.start && now <= block.end
       );
       
       if (currentBlock) {
-        // Find the DOM element for this block
+        // Scroll to current block
         const blockElement = document.getElementById(`block-${currentBlock.id}`);
         if (blockElement) {
           blockElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
           console.log('📍 Scrolled to current block:', currentBlock.title);
         }
+      } else {
+        // Cases 2 & 3: Find most recent past block (after last block or in a gap)
+        const pastBlocks = currentSchedule.blocks.filter(block => now > block.end);
+        if (pastBlocks.length > 0) {
+          const lastPastBlock = pastBlocks[pastBlocks.length - 1];
+          const blockElement = document.getElementById(`block-${lastPastBlock.id}`);
+          if (blockElement) {
+            blockElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            console.log('📍 Scrolled to most recent past block:', lastPastBlock.title);
+          }
+        }
+        // Case 1: No past blocks = don't scroll (already at top)
       }
       
       setShouldScrollToCurrent(false);
