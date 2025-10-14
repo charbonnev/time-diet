@@ -154,9 +154,46 @@ export function scheduleBlockNotifications(
       } else {
         console.log(`  ⏭️ Skipped START for next block (already started)`);
       }
+    } else if (isContiguous && !isFutureBlock && earlyWarningMinutes > 0) {
+      // CURRENT BLOCK that's contiguous with early warning enabled
+      console.log(`  📍 Current block - checking for wrap-up and next block start`);
+      
+      // Check if wrap-up time is still in the future
+      const earlyWarningTime = addMinutes(block.end, -earlyWarningMinutes);
+      if (earlyWarningTime > now && nextBlock) {
+        const notification = {
+          id: `block-wrap-${block.id}`,
+          blockId: block.id,
+          scheduledTime: earlyWarningTime,
+          title: `Wrap up: ${block.title}`,
+          body: `Next: ${nextBlock.title} in ${earlyWarningMinutes} minutes`,
+          isEarlyWarning: true,
+          date: date,
+          notificationType: 'early-warning' as const
+        };
+        notifications.push(notification);
+        console.log(`  ✅ Created WRAP-UP for current block at ${format(earlyWarningTime, 'HH:mm')}:`, notification.title);
+      } else {
+        console.log(`  ⏭️ Wrap-up time already passed for current block`);
+      }
+      
+      // Schedule next block start
+      if (nextBlock && nextBlock.start > now) {
+        const notification = {
+          id: `block-start-${nextBlock.id}`,
+          blockId: nextBlock.id,
+          scheduledTime: nextBlock.start,
+          title: `Time for: ${nextBlock.title}`,
+          body: `Starting now until ${format(nextBlock.end, 'HH:mm')}`,
+          date: date,
+          notificationType: 'block-start' as const
+        };
+        notifications.push(notification);
+        console.log(`  ✅ Created START notification for next block at ${format(nextBlock.start, 'HH:mm')}:`, notification.title);
+      }
     } else if (isContiguous && !isFutureBlock) {
-      // CURRENT BLOCK that's contiguous: Still need to schedule next block start!
-      console.log(`  📍 Current block - checking if we need to schedule next block start`);
+      // CURRENT BLOCK that's contiguous but no early warning
+      console.log(`  📍 Current block (no early warning) - checking next block start`);
       if (nextBlock && nextBlock.start > now) {
         const notification = {
           id: `block-start-${nextBlock.id}`,
