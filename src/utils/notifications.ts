@@ -114,8 +114,8 @@ export function scheduleBlockNotifications(
       nextBlock: nextBlock?.title || 'none'
     });
 
-    if (isContiguous && earlyWarningMinutes > 0) {
-      // SMART-MERGE: Contiguous blocks with early warning enabled
+    if (isContiguous && earlyWarningMinutes > 0 && isFutureBlock) {
+      // SMART-MERGE: Contiguous FUTURE blocks with early warning enabled
       
       // Enhanced early warning: wrap up current block + preview next block
       // Create this even for CURRENT blocks if the warning time hasn't passed yet
