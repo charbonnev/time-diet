@@ -548,7 +548,7 @@ const PERSISTENT_NOTIFICATION_TAG = 'time-diet-current-block';
 
 export async function showPersistentCurrentBlock(
   block: TimeBlockInstance,
-  timeRemaining: string
+  endTime: string
 ): Promise<void> {
   try {
     if (!isNotificationSupported() || Notification.permission !== 'granted') {
@@ -563,7 +563,7 @@ export async function showPersistentCurrentBlock(
     
     // Show new persistent notification
     await registration.showNotification(`⏰ ${block.title}`, {
-      body: `Time remaining: ${timeRemaining}`,
+      body: `Until ${endTime}`,
       tag: PERSISTENT_NOTIFICATION_TAG,
       icon: '/pwa-192x192.png',
       badge: '/pwa-192x192.png',
@@ -580,7 +580,7 @@ export async function showPersistentCurrentBlock(
       ]
     } as any); // TypeScript types are outdated for notification actions
     
-    console.log('📌 Persistent notification shown:', block.title, timeRemaining);
+    console.log('📌 Persistent notification shown:', block.title, 'until', endTime);
   } catch (error) {
     console.error('Error showing persistent notification:', error);
   }
@@ -588,10 +588,10 @@ export async function showPersistentCurrentBlock(
 
 export async function updatePersistentCurrentBlock(
   block: TimeBlockInstance,
-  timeRemaining: string
+  endTime: string
 ): Promise<void> {
   // Simply show a new notification with the same tag (replaces the old one)
-  await showPersistentCurrentBlock(block, timeRemaining);
+  await showPersistentCurrentBlock(block, endTime);
 }
 
 export async function clearPersistentCurrentBlock(): Promise<void> {

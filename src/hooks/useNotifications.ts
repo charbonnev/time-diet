@@ -236,14 +236,16 @@ export function useNotifications() {
       );
 
       if (currentBlock) {
-        // Calculate time remaining
-        const minutesRemaining = differenceInMinutes(currentBlock.end, now);
-        const timeRemaining = minutesRemaining >= 60 
-          ? `${Math.floor(minutesRemaining / 60)}h ${minutesRemaining % 60}m`
-          : `${minutesRemaining}m`;
+        // Show end time instead of calculating remaining time
+        // This way we don't need constant updates!
+        const endTime = currentBlock.end.toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: false 
+        });
         
         // Show/update persistent notification
-        updatePersistentCurrentBlock(currentBlock, timeRemaining);
+        updatePersistentCurrentBlock(currentBlock, endTime);
       } else {
         // No active block, clear persistent notification
         clearPersistentCurrentBlock();
