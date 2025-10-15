@@ -10,7 +10,8 @@ import {
   markLightsOutReminderShown,
   scheduleNotificationsPush,
   clearScheduledPushNotifications,
-  clearPersistentCurrentBlock
+  clearPersistentCurrentBlock,
+  updatePersistentCurrentBlock
 } from '@/utils/notifications';
 import { pushNotificationManager } from '@/utils/pushNotifications';
 import { getCurrentDateString } from '@/utils/time';
