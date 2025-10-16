@@ -60,6 +60,26 @@ export interface Checklist {
   successRate: number; // Calculated percentage
 }
 
+// Custom Checklist Types (New!)
+export interface ChecklistItemRule {
+  titleContains?: string;  // Optional: filter by title substring (case-insensitive)
+  category?: string;       // Optional: filter by category ID
+}
+
+export interface ChecklistItemDefinition {
+  id: string;
+  name: string;
+  type: 'boolean' | 'count';
+  target?: number;         // For count type: how many to achieve (e.g., 4 for "4 focus blocks")
+  rule?: ChecklistItemRule; // For count type: how to count matching blocks
+}
+
+export interface ChecklistDefinition {
+  id: string;
+  name: string;            // e.g., "Charlie's Goals! 🎯"
+  items: ChecklistItemDefinition[];
+}
+
 export interface Settings {
   notificationsEnabled: boolean;
   earlyWarningMinutes: number; // 0 or 5
@@ -70,6 +90,7 @@ export interface Settings {
   darkMode: boolean; // Dark mode toggle
   debugMode: boolean; // Show debug test buttons for notifications
   persistentCurrentBlock: boolean; // Show persistent notification for current active block
+  customChecklist?: ChecklistDefinition; // Custom checklist goals (optional, uses default if not set)
 }
 
 export interface ModeState {

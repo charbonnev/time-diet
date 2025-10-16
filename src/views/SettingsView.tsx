@@ -4,9 +4,13 @@ import { requestNotificationPermission } from '@/hooks/useNotifications';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { useTheme } from '@/components/ThemeProvider';
 import { pushNotificationManager } from '@/utils/pushNotifications';
-import { Bell, Clock, Download, Check, Server, Moon, Sun, FileText, Plus, Edit2, Trash2, Upload, FileDown, RotateCcw } from 'lucide-react';
+import { Bell, Clock, Download, Check, Server, Moon, Sun, FileText, Plus, Edit2, Trash2, Upload, FileDown, RotateCcw, Target } from 'lucide-react';
 import packageJson from '../../package.json';
 import TemplateEditor from '@/components/TemplateEditor';
+import ChecklistEditor from '@/components/ChecklistEditor';
+import { getActiveChecklistDefinition } from '@/utils/customChecklist';
+import { DEFAULT_CHECKLIST } from '@/utils/defaultChecklist';
+import type { ChecklistDefinition } from '@/types';
 
 const SettingsView: React.FC = () => {
   const { settings, updateSettings, templates, removeTemplate, categories, addTemplate, updateTemplate, resetTemplatesToDefault, notificationQueue } = useAppStore();
@@ -18,6 +22,7 @@ const SettingsView: React.FC = () => {
   const [importTemplateName, setImportTemplateName] = React.useState('');
   const [importErrors, setImportErrors] = React.useState<string[]>([]);
   const [showDebugNotifications, setShowDebugNotifications] = React.useState(false);
+  const [showChecklistEditor, setShowChecklistEditor] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleSaveTemplate = async (template: any) => {
@@ -106,6 +111,24 @@ const SettingsView: React.FC = () => {
       alert('✅ Templates reset to default successfully!');
     } catch (error) {
       alert('Failed to reset templates: ' + (error instanceof Error ? error.message : String(error)));
+    }
+  };
+
+  const handleSaveChecklist = async (checklist: ChecklistDefinition) => {
+    await updateSettings({ customChecklist: checklist });
+    setShowChecklistEditor(false);
+  };
+
+  const handleResetChecklist = async () => {
+    if (!confirm('⚠️ This will reset your goals to the default "Charlie\'s Goals! 🎯". Continue?')) {
+      return;
+    }
+
+    try {
+      await updateSettings({ customChecklist: undefined });
+      alert('✅ Goals reset to default successfully!');
+    } catch (error) {
+      alert('Failed to reset goals: ' + (error instanceof Error ? error.message : String(error)));
     }
   };
 
@@ -804,6 +827,76 @@ const SettingsView: React.FC = () => {
         )}
       </div>
 
+      {/* My Goals Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
+          <Target className="w-5 h-5 mr-2" />
+          My Goals
+        </h3>
+        
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Customize your daily goals checklist. Define what success looks like for you.
+        </p>
+
+        {/* Current Checklist Display */}
+        <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-semibold text-gray-800 dark:text-gray-200">
+              {getActiveChecklistDefinition(settings).name}
+            </h4>
+            {settings.customChecklist && (
+              <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded">
+                Custom
+              </span>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            {getActiveChecklistDefinition(settings).items.map(item => (
+              <div key={item.id} className="flex items-start gap-2">
+                <div className="text-blue-600 dark:text-blue-400 mt-0.5">
+                  {item.type === 'boolean' ? '☑️' : '🎯'}
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-gray-700 dark:text-gray-300">
+                    {item.name}
+                  </div>
+                  {item.type === 'count' && (
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Target: {item.target || 1} | {
+                        !item.rule?.titleContains && !item.rule?.category ? 'Any blocks' :
+                        item.rule?.titleContains && item.rule?.category ? `"${item.rule.titleContains}" + ${categories.find(c => c.id === item.rule?.category)?.name}` :
+                        item.rule?.titleContains ? `Contains "${item.rule.titleContains}"` :
+                        `${categories.find(c => c.id === item.rule?.category)?.name} category`
+                      }
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Goal Management Buttons */}
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setShowChecklistEditor(true)}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+          >
+            <Edit2 className="w-4 h-4" />
+            Edit Goals
+          </button>
+          
+          <button
+            onClick={handleResetChecklist}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-orange-600 dark:bg-orange-700 text-white rounded-lg hover:bg-orange-700 dark:hover:bg-orange-600 transition-colors"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Reset to Default
+          </button>
+        </div>
+      </div>
+
       {/* Templates Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center">
@@ -968,6 +1061,16 @@ const SettingsView: React.FC = () => {
             setShowTemplateEditor(false);
             setEditingTemplateId(null);
           }}
+        />
+      )}
+
+      {/* Checklist Editor Modal */}
+      {showChecklistEditor && (
+        <ChecklistEditor
+          checklist={settings.customChecklist || DEFAULT_CHECKLIST}
+          categories={categories}
+          onSave={handleSaveChecklist}
+          onClose={() => setShowChecklistEditor(false)}
         />
       )}
 
