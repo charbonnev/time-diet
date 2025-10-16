@@ -15,7 +15,7 @@ export const DEFAULT_CHECKLIST: ChecklistDefinition = {
     },
     {
       id: 'focusBlocksCompleted',
-      name: 'Deep Focus (4/4)',
+      name: 'Deep Focus',
       type: 'count',
       target: 4,
       rule: {

@@ -476,12 +476,12 @@ export const useAppStore = create<AppState>()(
         // Checklists
         loadChecklistForDate: async (date: string) => {
           try {
-            const { currentSchedule, categories } = get();
+            const { currentSchedule, categories, settings } = get();
             let checklist = await getChecklist(date);
             
             if (!checklist && currentSchedule) {
               // Auto-populate checklist
-              checklist = autoPopulateChecklist(date, currentSchedule.blocks, categories);
+              checklist = autoPopulateChecklist(date, currentSchedule.blocks, categories, undefined, settings);
               await saveChecklist(checklist);
             }
             
@@ -493,26 +493,27 @@ export const useAppStore = create<AppState>()(
 
         updateChecklistItem: async (date: string, updates: Partial<Checklist>) => {
           try {
-            const { currentSchedule, categories } = get();
+            const { currentSchedule, categories, settings } = get();
             if (!currentSchedule) return;
 
             let checklist = await getChecklist(date);
             if (!checklist) {
-              checklist = autoPopulateChecklist(date, currentSchedule.blocks, categories);
+              checklist = autoPopulateChecklist(date, currentSchedule.blocks, categories, undefined, settings);
             }
 
+            // Apply updates
             const updatedChecklist = { ...checklist, ...updates };
-            // Recalculate success
-            const checkmarks = [
-              updatedChecklist.wake0730,
-              updatedChecklist.focusBlocksCompleted >= 3,
-              updatedChecklist.noWeekdayYTGames,
-              updatedChecklist.lightsOut2330
-            ].filter(Boolean).length;
             
-            updatedChecklist.success = checkmarks >= 3;
+            // Re-evaluate with current blocks to update success rate
+            const freshChecklist = autoPopulateChecklist(
+              date,
+              currentSchedule.blocks,
+              categories,
+              updatedChecklist,
+              settings
+            );
 
-            await saveChecklist(updatedChecklist);
+            await saveChecklist(freshChecklist);
             
             // Update store if this is the currently loaded checklist (for correction mode)
             if (currentSchedule && date === currentSchedule.date) {

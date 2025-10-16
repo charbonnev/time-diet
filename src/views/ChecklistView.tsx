@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useAppStore } from '@/store';
 import { format, parseISO, addDays, subDays } from 'date-fns';
 import { CheckCircle, Circle, Target, TrendingUp, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Checklist } from '@/types';
 import { getCurrentDateString } from '@/utils/time';
 import { calculateCategoryPoints, calculateTotalCompletedPoints, calculateTotalPlannedPoints } from '@/utils/points';
+import { getActiveChecklistDefinition, evaluateChecklistItem, isCountItemCompleted, calculateCustomChecklistSuccess } from '@/utils/customChecklist';
 
 const ChecklistView: React.FC = () => {
   const { 
@@ -60,13 +61,27 @@ const ChecklistView: React.FC = () => {
             let plannedPoints = 0;
             
             if (checklist) {
-              // Calculate checkmarks from existing checklist
-              if (checklist.wake0730) checkmarks++;
-              if ((checklist.focusBlocksCompleted ?? 0) >= 3) checkmarks++;
-              if (checklist.noWeekdayYTGames) checkmarks++;
-              if (checklist.lightsOut2330) checkmarks++;
-              
-              hasData = checklist.wake0730 || checklist.noWeekdayYTGames || checklist.lightsOut2330 || (checklist.focusBlocksCompleted ?? 0) > 0;
+              // Calculate checkmarks using custom checklist if available
+              if (settings.customChecklist && checklist.customValues) {
+                const checklistDef = getActiveChecklistDefinition(settings);
+                checkmarks = checklistDef.items.filter(item => {
+                  const value = checklist.customValues?.[item.id];
+                  if (item.type === 'boolean') return value === true;
+                  if (item.type === 'count' && typeof value === 'number') {
+                    return value >= (item.target || 1);
+                  }
+                  return false;
+                }).length;
+                hasData = Object.keys(checklist.customValues).length > 0;
+              } else {
+                // Fallback to old hardcoded checkmarks
+                if (checklist.wake0730) checkmarks++;
+                if ((checklist.focusBlocksCompleted ?? 0) >= 3) checkmarks++;
+                if (checklist.noWeekdayYTGames) checkmarks++;
+                if (checklist.lightsOut2330) checkmarks++;
+                
+                hasData = checklist.wake0730 || checklist.noWeekdayYTGames || checklist.lightsOut2330 || (checklist.focusBlocksCompleted ?? 0) > 0;
+              }
             }
             
             // Calculate actual points from schedule if available
@@ -75,7 +90,10 @@ const ChecklistView: React.FC = () => {
               actualPoints = calculateTotalCompletedPoints(schedule.blocks);
             }
             
-            const successRate = Math.round((checkmarks / 4) * 100);
+            const totalItems = (settings.customChecklist && checklist?.customValues) 
+              ? getActiveChecklistDefinition(settings).items.length 
+              : 4;
+            const successRate = Math.round((checkmarks / totalItems) * 100);
             
             data.push({
               date: format(date, 'MMM dd'),
@@ -113,8 +131,13 @@ const ChecklistView: React.FC = () => {
     loadStreakData();
   }, [today]); // Re-load when date changes (shouldn't happen but just in case)
 
-  const handleChecklistToggle = async (itemKey: keyof Checklist, newValue: boolean) => {
-    await updateChecklistItem(viewDate, { [itemKey]: newValue });
+  const handleChecklistToggle = async (itemId: string, newValue: boolean) => {
+    // Store boolean values in customValues
+    const updatedCustomValues = {
+      ...currentChecklist?.customValues,
+      [itemId]: newValue
+    };
+    await updateChecklistItem(viewDate, { customValues: updatedCustomValues });
   };
 
   const handlePreviousDay = () => {
@@ -181,38 +204,41 @@ const ChecklistView: React.FC = () => {
     );
   }
 
-  // Calculate focus blocks completed from actual time blocks
-  const focusBlocksCompleted = currentSchedule?.blocks.filter(block => 
-    block.title.toLowerCase().includes('focus') && block.status === 'completed'
-  ).length || 0;
+  // Get active checklist definition
+  const checklistDefinition = useMemo(() => getActiveChecklistDefinition(settings), [settings]);
 
-  // Calculate checklist items from the actual Checklist interface
-  const checklistItems = [
-    { 
-      name: 'Wake up at 7:30', 
-      completed: currentChecklist?.wake0730 || false,
-      key: 'wake0730' as keyof Checklist,
-      clickable: true
-    },
-    { 
-      name: `Focus Blocks Completed (${focusBlocksCompleted}/4)`, 
-      completed: focusBlocksCompleted >= 4,
-      key: 'focusBlocksCompleted' as keyof Checklist,
-      clickable: false // This is auto-updated from time blocks
-    },
-    { 
-      name: 'No Weekday YT/Games', 
-      completed: currentChecklist?.noWeekdayYTGames || false,
-      key: 'noWeekdayYTGames' as keyof Checklist,
-      clickable: true
-    },
-    { 
-      name: 'Lights Out at 23:30', 
-      completed: currentChecklist?.lightsOut2330 || false,
-      key: 'lightsOut2330' as keyof Checklist,
-      clickable: true
-    }
-  ];
+  // Dynamically evaluate checklist items based on custom definition
+  const checklistItems = useMemo(() => {
+    if (!currentSchedule) return [];
+
+    return checklistDefinition.items.map(item => {
+      // Get stored value (for boolean items) or evaluate (for count items)
+      const storedValue = currentChecklist?.customValues?.[item.id];
+      const value = evaluateChecklistItem(item, currentSchedule.blocks, storedValue as boolean | undefined);
+      
+      // Determine if completed
+      let completed = false;
+      let displayName = item.name;
+
+      if (item.type === 'boolean') {
+        completed = value === true;
+      } else if (item.type === 'count') {
+        const count = typeof value === 'number' ? value : 0;
+        completed = isCountItemCompleted(item, count);
+        // Show progress: "Goal Name (X/Target)"
+        displayName = `${item.name} (${count}/${item.target || 1})`;
+      }
+
+      return {
+        id: item.id,
+        name: displayName,
+        completed,
+        clickable: item.type === 'boolean', // Only boolean items are user-toggleable
+        type: item.type,
+        value
+      };
+    });
+  }, [checklistDefinition, currentSchedule, currentChecklist]);
 
   const completedItems = checklistItems.filter(item => item.completed).length;
   const totalItems = checklistItems.length;
@@ -365,7 +391,7 @@ const ChecklistView: React.FC = () => {
 
       {/* Checklist Items */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Today's Tasks</h3>
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">Today's Goals</h3>
         <div className="space-y-3">
           {checklistItems.map((item, index) => (
             <div
@@ -376,7 +402,7 @@ const ChecklistView: React.FC = () => {
               )}
               >
                 <button
-                  onClick={() => item.clickable && handleChecklistToggle(item.key, !item.completed)}
+                  onClick={() => item.clickable && handleChecklistToggle(item.id, !item.completed)}
                   className={cn(
                     "flex-shrink-0",
                     item.clickable ? "cursor-pointer hover:scale-110 transition-transform" : "cursor-default"

@@ -1,6 +1,6 @@
 # Time Diet - Structured Routine Manager
 
-**Version 1.6.0** | **Live at**: [time-diet.vercel.app](https://time-diet.vercel.app)
+**Version 1.8.0** | **Live at**: [time-diet.vercel.app](https://time-diet.vercel.app)
 
 A comprehensive Progressive Web App (PWA) for managing time blocks, tracking daily routines, and building productive habits with ADHD-friendly features.
 
@@ -34,6 +34,29 @@ A comprehensive Progressive Web App (PWA) for managing time blocks, tracking dai
 - **Structured Routine**: Consistent daily schedule to build habits
 
 ## 📋 Changelog
+
+### Version 1.8.0 (2025-01-16)
+**🎯 GROUNDBREAKING FEATURE: Custom Checklist System**
+
+**Define Your Own Goals:**
+- ✨ **Fully customizable checklists** - create goals that match YOUR life
+- 📊 **Boolean goals** - simple yes/no checkmarks (e.g., "Did exercise", "Meditated")
+- 🎯 **Count-based goals** - track how many times you completed something (e.g., "Deep Focus (3/4)")
+- 🔧 **Smart rules** - filter by title contains + category (e.g., count all "Focus" blocks in Deep Work category)
+- 💾 **Persistent** - your custom checklist is saved and synced across all views
+- 🎨 **Beautiful UI** - intuitive checklist editor with live rule preview
+
+**Why This Changes Everything:**
+- No longer locked to Charlie's specific goals!
+- Adapt Time Diet to ANY routine, ANY lifestyle
+- Track exercise sessions, reading time, meditation, calls with friends - anything!
+- Mix boolean and count goals for maximum flexibility
+- Success rate automatically adjusts to your goal count
+
+**Technical Excellence:**
+- Dynamic evaluation engine for rule-based counting
+- Backward compatible with existing checklists
+- Fully integrated with calendar, streaks, and success tracking
 
 ### Version 1.6.0 (2025-01-14)
 **🎯 MAJOR ADHD FEATURE: Persistent Current Block Notification**

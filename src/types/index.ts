@@ -58,6 +58,7 @@ export interface Checklist {
   lightsOut2330: boolean;
   success: boolean;
   successRate: number; // Calculated percentage
+  customValues?: Record<string, boolean | number>; // For custom checklist items (stores by item ID)
 }
 
 // Custom Checklist Types (New!)
