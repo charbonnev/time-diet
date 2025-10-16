@@ -244,30 +244,43 @@ const ChecklistView: React.FC = () => {
   const totalItems = checklistItems.length;
   const successRate = currentChecklist?.successRate || Math.round((completedItems / totalItems) * 100);
 
-  // Calculate actual points from completed blocks
-  const totalPlannedPoints = calculateTotalPlannedPoints(currentSchedule.blocks);
-  const totalCompletedPoints = calculateTotalCompletedPoints(currentSchedule.blocks);
-  const categoryPointsData = calculateCategoryPoints(currentSchedule.blocks, categories);
+  // Memoize expensive point calculations
+  const totalPlannedPoints = useMemo(() => 
+    calculateTotalPlannedPoints(currentSchedule.blocks),
+    [currentSchedule.blocks]
+  );
+  
+  const totalCompletedPoints = useMemo(() => 
+    calculateTotalCompletedPoints(currentSchedule.blocks),
+    [currentSchedule.blocks]
+  );
+  
+  const categoryPointsData = useMemo(() => 
+    calculateCategoryPoints(currentSchedule.blocks, categories),
+    [currentSchedule.blocks, categories]
+  );
 
   // Prepare pie chart data
-  const pieData = [
+  const pieData = useMemo(() => [
     { name: 'Completed', value: completedItems, color: '#10b981' },
     { name: 'Remaining', value: totalItems - completedItems, color: '#e5e7eb' }
-  ];
+  ], [completedItems, totalItems]);
 
-  // Category breakdown from schedule blocks - now showing POINTS instead of block counts
-  const categoryBreakdown = categoryPointsData.map(cp => {
-    const category = categories.find(cat => cat.id === cp.categoryId);
-    if (!category || cp.planned === 0) return null;
-    
-    return {
-      name: category.name,
-      completedPoints: cp.completed,
-      totalPoints: cp.planned,
-      color: category.color,
-      percentage: cp.planned > 0 ? Math.round((cp.completed / cp.planned) * 100) : 0
-    };
-  }).filter(cat => cat !== null);
+  // Memoize category breakdown calculation
+  const categoryBreakdown = useMemo(() => {
+    return categoryPointsData.map(cp => {
+      const category = categories.find(cat => cat.id === cp.categoryId);
+      if (!category || cp.planned === 0) return null;
+      
+      return {
+        name: category.name,
+        completedPoints: cp.completed,
+        totalPoints: cp.planned,
+        color: category.color,
+        percentage: cp.planned > 0 ? Math.round((cp.completed / cp.planned) * 100) : 0
+      };
+    }).filter(cat => cat !== null);
+  }, [categoryPointsData, categories]);
 
   return (
     <div className="p-4">

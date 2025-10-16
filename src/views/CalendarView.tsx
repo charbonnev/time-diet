@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, startOfWeek, endOfWeek, isSameMonth } from 'date-fns';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getCurrentDateString } from '@/utils/time';
 import DayDetailModal from '@/components/DayDetailModal';
+import { useAppStore } from '@/store';
+import { getActiveChecklistDefinition } from '@/utils/customChecklist';
 
 const CalendarView: React.FC = () => {
+  const { settings } = useAppStore();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [dayStatuses, setDayStatuses] = useState<Record<string, string>>({});
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -35,6 +38,50 @@ const CalendarView: React.FC = () => {
     };
   }, [longPressTimer]);
 
+  // Memoized helper to determine status from checklist
+  const getStatusFromChecklist = useCallback((checklist: any): string => {
+    if (!checklist) return 'empty';
+    
+    // Calculate performance using custom checklist system
+    const checklistDef = getActiveChecklistDefinition(settings);
+    let checkmarks = 0;
+    let totalItems = checklistDef.items.length;
+    
+    // Use custom checklist if available
+    if (settings.customChecklist && checklist.customValues) {
+      checkmarks = checklistDef.items.filter(item => {
+        const value = checklist.customValues?.[item.id];
+        if (item.type === 'boolean') return value === true;
+        if (item.type === 'count' && typeof value === 'number') {
+          return value >= (item.target || 1);
+        }
+        return false;
+      }).length;
+    } else {
+      // Fallback to legacy hardcoded checkmarks
+      if (checklist.wake0730) checkmarks++;
+      if ((checklist.focusBlocksCompleted ?? 0) >= 3) checkmarks++;
+      if (checklist.noWeekdayYTGames) checkmarks++;
+      if (checklist.lightsOut2330) checkmarks++;
+      totalItems = 4;
+    }
+    
+    const successRate = (checkmarks / totalItems) * 100;
+    
+    // Determine status based on success rate
+    if (successRate >= 80) return 'excellent';
+    if (successRate >= 60) return 'good';
+    if (successRate >= 40) return 'fair';
+    if (successRate > 0) return 'poor';
+    
+    // Check if there's any manual input (even if 0% success)
+    const hasAnyInput = settings.customChecklist && checklist.customValues
+      ? Object.keys(checklist.customValues).length > 0
+      : (checklist.wake0730 || checklist.noWeekdayYTGames || 
+         checklist.lightsOut2330 || (checklist.focusBlocksCompleted ?? 0) > 0);
+    return hasAnyInput ? 'poor' : 'scheduled';
+  }, [settings]);
+
   // Update day statuses when month changes
   useEffect(() => {
     console.log('📅 CalendarView: Loading calendar with real performance data');
@@ -59,36 +106,7 @@ const CalendarView: React.FC = () => {
           
           try {
             const checklist = await getChecklist(dateStr);
-            
-            if (!checklist) {
-              statuses[dateStr] = 'empty';
-              return;
-            }
-            
-            // Calculate performance based on checklist completion
-            let checkmarks = 0;
-            if (checklist.wake0730) checkmarks++;
-            if ((checklist.focusBlocksCompleted ?? 0) >= 3) checkmarks++;
-            if (checklist.noWeekdayYTGames) checkmarks++;
-            if (checklist.lightsOut2330) checkmarks++;
-            
-            const successRate = (checkmarks / 4) * 100;
-            
-            // Determine status based on success rate
-            if (successRate >= 80) {
-              statuses[dateStr] = 'excellent';
-            } else if (successRate >= 60) {
-              statuses[dateStr] = 'good';
-            } else if (successRate >= 40) {
-              statuses[dateStr] = 'fair';
-            } else if (successRate > 0) {
-              statuses[dateStr] = 'poor';
-            } else {
-              // Check if there's any manual input (even if 0% success)
-              const hasAnyInput = checklist.wake0730 || checklist.noWeekdayYTGames || checklist.lightsOut2330 || (checklist.focusBlocksCompleted ?? 0) > 0;
-              statuses[dateStr] = hasAnyInput ? 'poor' : 'scheduled';
-            }
-            
+            statuses[dateStr] = getStatusFromChecklist(checklist);
           } catch (error) {
             console.error(`Error loading checklist for ${dateStr}:`, error);
             statuses[dateStr] = 'empty';
@@ -108,7 +126,7 @@ const CalendarView: React.FC = () => {
     };
     
     loadCalendarData();
-  }, [currentMonth]); // Only depend on currentMonth to avoid infinite loop
+  }, [currentMonth, getStatusFromChecklist]); // Only depend on currentMonth to avoid infinite loop
 
   const getDayStatus = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');

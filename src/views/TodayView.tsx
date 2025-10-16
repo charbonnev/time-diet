@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useAppStore } from '@/store';
 import { format, parseISO, addDays, subDays } from 'date-fns';
 import { TimeBlockInstance } from '@/types';
@@ -372,8 +372,13 @@ const TodayView: React.FC = () => {
     }
   }, [settings.correctionMode, today, viewDate]);
 
+  // Memoize category lookup map to avoid repeated finds
+  const categoryMap = useMemo(() => {
+    return new Map(categories.map(cat => [cat.id, { color: cat.color, name: cat.name }]));
+  }, [categories]);
+
   const getCategoryInfo = (categoryId: string) => {
-    const category = categories.find(cat => cat.id === categoryId);
+    const category = categoryMap.get(categoryId);
     return {
       color: category?.color || '#cccccc',
       name: category?.name || 'Unknown Category'
