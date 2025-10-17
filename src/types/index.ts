@@ -92,6 +92,7 @@ export interface Settings {
   debugMode: boolean; // Show debug test buttons for notifications
   persistentCurrentBlock: boolean; // Show persistent notification for current active block
   customChecklist?: ChecklistDefinition; // Custom checklist goals (optional, uses default if not set)
+  challengeThreshold?: number; // Success rate threshold for challenges (default 75%)
 }
 
 export interface ModeState {

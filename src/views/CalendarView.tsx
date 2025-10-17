@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, startOfWeek, endOfWeek, isSameMonth } from 'date-fns';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -6,6 +6,8 @@ import { getCurrentDateString } from '@/utils/time';
 import DayDetailModal from '@/components/DayDetailModal';
 import { useAppStore } from '@/store';
 import { getActiveChecklistDefinition } from '@/utils/customChecklist';
+import { calculateChallengeStats, getChallengeDisplayText, getMotivationalMessage } from '@/utils/challenge';
+import { getAllChecklists } from '@/utils/storage';
 
 const CalendarView: React.FC = () => {
   const { settings } = useAppStore();
@@ -14,6 +16,7 @@ const CalendarView: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showDayModal, setShowDayModal] = useState(false);
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const [challengeStats, setChallengeStats] = useState<ReturnType<typeof calculateChallengeStats> | null>(null);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -28,6 +31,17 @@ const CalendarView: React.FC = () => {
   const nextMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
   };
+
+  // Load challenge stats
+  useEffect(() => {
+    const loadChallengeStats = async () => {
+      const checklists = await getAllChecklists();
+      const threshold = settings.challengeThreshold || 75;
+      const stats = calculateChallengeStats(checklists, threshold);
+      setChallengeStats(stats);
+    };
+    loadChallengeStats();
+  }, [settings.challengeThreshold]);
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -266,7 +280,7 @@ const CalendarView: React.FC = () => {
       </div>
 
       {/* Legend */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-4">
         <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">Success Rate Legend</h4>
         <div className="grid grid-cols-2 gap-2 text-xs">
           {[
@@ -284,6 +298,47 @@ const CalendarView: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Challenge Card */}
+      {challengeStats && (
+        <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg shadow-sm p-3 border-2 border-orange-200 dark:border-orange-800">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-base font-bold text-gray-800 dark:text-gray-200">
+              {getChallengeDisplayText(challengeStats)}
+            </h4>
+            <div className="text-2xl">
+              {challengeStats.currentStreak > 0 ? '🔥' : '🎯'}
+            </div>
+          </div>
+          
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+            {getMotivationalMessage(challengeStats)}
+          </p>
+          
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div className="bg-white/50 dark:bg-gray-800/50 rounded p-2">
+              <div className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">Current</div>
+              <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                {challengeStats.currentStreak}
+              </div>
+            </div>
+            
+            <div className="bg-white/50 dark:bg-gray-800/50 rounded p-2">
+              <div className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">Longest</div>
+              <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                {challengeStats.longestStreak}
+              </div>
+            </div>
+            
+            <div className="bg-white/50 dark:bg-gray-800/50 rounded p-2">
+              <div className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">Total</div>
+              <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                {challengeStats.totalSuccessfulDays}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Day Detail Modal */}
       {showDayModal && selectedDate && (

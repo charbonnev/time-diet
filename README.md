@@ -1,6 +1,6 @@
 # Time Diet - Structured Routine Manager
 
-**Version 1.8.0** | **Live at**: [time-diet.vercel.app](https://time-diet.vercel.app)
+**Version 1.9.0** | **Live at**: [time-diet.vercel.app](https://time-diet.vercel.app)
 
 A comprehensive Progressive Web App (PWA) for managing time blocks, tracking daily routines, and building productive habits with ADHD-friendly features.
 
@@ -34,6 +34,30 @@ A comprehensive Progressive Web App (PWA) for managing time blocks, tracking dai
 - **Structured Routine**: Consistent daily schedule to build habits
 
 ## 📋 Changelog
+
+### Version 1.9.0 (2025-10-17)
+**🔥 NEW FEATURE: Challenge/Streak System**
+
+**Track Your Consistency:**
+- 🔥 **Streak tracking** - see your current streak and longest streak
+- 📊 **Visual Challenge card** - compact display in Calendar view
+- 🎯 **Configurable threshold** - set your own success rate (default 75%)
+- 💪 **Motivational messages** - dynamic encouragement based on your progress
+- 📱 **Mobile-optimized** - compact layout fits perfectly on phone screens
+
+**What It Shows:**
+- Current streak (consecutive days meeting your threshold)
+- Longest streak (your personal record!)
+- Total successful days
+- Motivational message to keep you going
+
+**Technical Details:**
+- Smart streak calculation from checklist history
+- Configurable success threshold in Settings
+- Efficient async loading from IndexedDB
+- Beautiful gradient card with fire emoji 🔥
+
+**Result:** Visual motivation to maintain your daily routine and build lasting habits!
 
 ### Version 1.8.0 (2025-01-16)
 **🎯 GROUNDBREAKING FEATURE: Custom Checklist System**
