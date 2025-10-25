@@ -2,7 +2,7 @@
 
 **Version 1.9.0** | **Live at**: [time-diet.vercel.app](https://time-diet.vercel.app)
 
-A comprehensive Progressive Web App (PWA) for managing time blocks, tracking daily routines, and building productive habits with ADHD-friendly features.
+A comprehensive Progressive Web App (PWA) for managing time blocks, tracking daily routines, and building productive habits with ADHD-friendly features. I'm currently working in the mobile version of the app.
 
 ## 🌟 Features
 
